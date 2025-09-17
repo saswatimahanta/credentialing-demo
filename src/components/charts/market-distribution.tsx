@@ -28,9 +28,9 @@ export function MarketDistributionChart() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="pb-0">
-        <div className="w-full h-auto">
-          <div className="grid grid-cols-2 gap-4">
+      <CardContent className="flex-1 pb-0">
+        <div className="w-full h-[300px] flex items-stretch">
+          <div className="grid grid-cols-2 gap-4 w-full self-center">
             {markets.map(m => {
               const percentage = (m.count / total) * 100;
               const colors: Record<string, string> = {

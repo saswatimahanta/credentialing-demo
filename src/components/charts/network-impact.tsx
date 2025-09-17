@@ -53,7 +53,7 @@ export function NetworkImpact() {
                     }
                   }}>
                     <Typography variant="h6" sx={{
-                      color: 'white',
+                      color: 'black',
                       fontWeight: 'bold',
                       position: 'relative',
                       zIndex: 1

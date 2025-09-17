@@ -29,7 +29,7 @@ interface FieldRow {
 // Placeholder initial extracted fields (normally returned by backend)
 const initialRows: FieldRow[] = [
     { id: 1, attribute: 'Issuer', value: 'The American Board of Psychiatry and Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 2, attribute: 'Recipient Name', value: 'Iqbal Akhtar Yar Khan, M.D., M.S.', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 2, attribute: 'Recipient Name', value: 'Munther A Hijazin', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 3, attribute: 'Title/Degree', value: 'Diplomate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 4, attribute: 'Field of Study', value: 'Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 5, attribute: 'Date of Certification', value: 'February, 2011 - December 31, 2021', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },

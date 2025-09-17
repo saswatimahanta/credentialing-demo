@@ -332,22 +332,9 @@ export default function ApplicationDetailsPage() {
             <CardContent className="space-y-4">
               <div>
                 <h4 className="font-semibold mb-2">AI Summary</h4>
-                {summary ? (
-                  <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-1">
-                    <li><strong>Docs Verified:</strong> {summary.docsSummary}</li>
-                    <li><strong>Emails:</strong> {summary.emailSummary}</li>
-                    <li>
-                      <strong>Next Action:</strong>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {summary.nextActions.map((action, idx) => (
-                          <li key={idx}>{action}</li>
-                        ))}
-                      </ul>
-                    </li>
-                  </ul>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No summary found.</p>
-                )}
+                <p className="text-sm text-muted-foreground">
+                  4 documents submitted; 1 verified. No critical issue found: The provider's DEA certificate has a missing required Schedule II authorization for this specialty.
+                </p>
               </div>
               <Separator />
               <div className="space-y-2">
