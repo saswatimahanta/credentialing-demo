@@ -1,4 +1,5 @@
 import { FileText, Mail, Phone, Calendar, Clock, BarChart2, PieChart, Users, FileWarning, FolderClock, HandPlatter, Building, Package } from 'lucide-react';
+import { CommitteeReviewIcon } from '@/components/icons/committee-review';
 
 export const kpiData = {
   totalApplications: { value: '1,250', change: '+15.2%', label: 'Total Applications', trend: [{ month: 'Jan', value: 100 }, { month: 'Feb', value: 120 }, { month: 'Mar', value: 150 }, { month: 'Apr', value: 130 }] },
@@ -42,7 +43,7 @@ export const navLinks = [
   { href: '/verification-centres', label: 'Verification Centres', icon: Users },
   { href: '/communication', label: 'Communication', icon: Mail },
   { href: '/reports', label: 'Reports', icon: BarChart2 },
-  { href: '/committee-review', label: 'Committee Review', icon: BarChart2 },
+  { href: '/committee-review', label: 'Committee Review', icon: CommitteeReviewIcon },
 ];
 
 export const communicationTabs = [

@@ -85,11 +85,24 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                     params: { 'appId': id, 'formId': '', 'uploadIds': uploadIds.join(',') },
                 });
 
-                const docData = Object.values(res.data?.files);
-                console.log(docData, 'docData');
-                setDocuments(docData)
+                let docData = Object.values(res.data?.files);
+                // Reorder depending on upload type
+                if (documentUploadType === 'psvFetched') {
+                    docData = docData.sort((a: any, b: any) => {
+                        if (a.fileType === 'board_certification') return -1;
+                        if (b.fileType === 'board_certification') return 1;
+                        return 0;
+                    });
+                } else {
+                    docData = docData.sort((a: any, b: any) => {
+                        if (a.fileType === 'MEDICAL_TRAINING_CERTIFICATE') return -1;
+                        if (b.fileType === 'MEDICAL_TRAINING_CERTIFICATE') return 1;
+                        return 0;
+                    });
+                }
+                setDocuments(docData);
                 if (docData.length > 0) {
-                    setSelectedDocument(docData[0]);
+                    setSelectedDocument(docData[0] as any);
                 }
                 setLoading(false);
             } catch (error) {
@@ -117,11 +130,23 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                 fetchDocUploadNameData(uploadIds);
             } catch (error) {
                 // console.log(error, 'error fetching form data');
-                const docData = await mockApi.getDocumentsStatus(id);
-                console.log(docData, 'docData');
+                let docData = await mockApi.getDocumentsStatus(id);
+                if (documentUploadType === 'psvFetched') {
+                    docData = docData.sort((a: any, b: any) => {
+                        if (a.fileType === 'board_certification') return -1;
+                        if (b.fileType === 'board_certification') return 1;
+                        return 0;
+                    });
+                } else {
+                    docData = docData.sort((a: any, b: any) => {
+                        if (a.fileType === 'MEDICAL_TRAINING_CERTIFICATE') return -1;
+                        if (b.fileType === 'MEDICAL_TRAINING_CERTIFICATE') return 1;
+                        return 0;
+                    });
+                }
                 setDocuments(docData);
                 if (docData.length > 0) {
-                    setSelectedDocument(docData[0]);
+                    setSelectedDocument(docData[0] as any);
                 }
                 setLoading(false);
                 // toast({ title: "Error", description: "Failed to load form data." });
@@ -293,7 +318,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                             <div>
                                 <div className="flex items-center gap-2 font-semibold text-lg">
                                     <Upload className="h-5 w-5 text-primary" />
-                                    <h4>Original Upload</h4>
+                                    <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
                                 </div>
                                 {imgSuccess && <Image
                                     src={imagePath}
@@ -361,22 +386,18 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                                 <h4>Comments</h4>
                             </div>
                             <div className="overflow-auto pr-2 flex-1 space-y-2 flex flex-col justify-between">
-                                {verificationCentre ? (
-                                    <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full flex flex-col">
-                                        <div className='flex items-center gap-1 cursor-pointer'><SquareMenuIcon className="h-3 w-3 text-primary" /><p className='text-[13px] text'>Previous Comments</p></div>
-                                        {/* <p><strong>Organization:</strong> {verificationCentre.name}</p>
+
+                                <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full flex flex-col">
+                                    <div className='flex items-center gap-1 cursor-pointer'><SquareMenuIcon className="h-3 w-3 text-primary" /><p className='text-[13px] text'>Previous Comments</p></div>
+                                    {/* <p><strong>Organization:</strong> {verificationCentre.name}</p>
                                     <p><strong>Address:</strong> {verificationCentre.address}</p>
                                     <p><strong>Contact:</strong> {verificationCentre.email}</p>
                                     <Separator className="my-2 bg-border" /> */}
-                                        <div className="space-y-2 h-full flex flex-col">
-                                            <Textarea placeholder="Add a comment or log interaction..." className='flex-1' />
-                                        </div>
+                                    <div className="space-y-2 h-full flex flex-col">
+                                        <Textarea placeholder="Add a comment or log interaction..." className='flex-1' />
                                     </div>
-                                ) : (
-                                    <div className="text-sm bg-muted p-3 rounded-md h-full flex items-center justify-center">
-                                        <p>No verification center contact information available for this document type.</p>
-                                    </div>
-                                )}
+                                </div>
+
                                 <div className='w-full flex gap-2'>
                                     <Button size="sm" className="flex-1" variant='outline' onClick={handleAddToMailList}>Save</Button>
                                     <Button size="sm" className="flex-1" variant='destructive' onClick={handleAddToMailList}>Cancel</Button>
