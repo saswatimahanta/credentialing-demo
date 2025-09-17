@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -38,7 +39,8 @@ import {
     CheckCircle as CheckCircleIcon,
     Download as DownloadIcon
 } from '@mui/icons-material';
-import mockDatabase from '@/components/committee-review/mockDatabase' ;
+import mockDatabase from '@/components/committee-review/mockDatabase';
+import api from '@/lib/mock-data';
 import ProviderDetailsDialog from '@/components/committee-review/provider-details-dialog';
 import ChecklistManager from '@/components/committee-review/checklist-manager';
 import ProviderChatSidebar from '@/components/committee-review/provider-chat-sidebar';
@@ -66,16 +68,87 @@ const CommitteeReview = () => {
         loadProviders();
     }, []);
 
-    const loadProviders = () => {
+    // Lightweight provider shape (subset used in this table)
+    interface CommitteeProvider {
+        id: string;
+        name: string;
+        specialty: string;
+        market: string;
+        status: string;
+        assignedAnalyst: string;
+        submissionDate: string;
+        networkImpact: string;
+    }
+
+    const mapApplicationToProvider = (app: any, idx: number): CommitteeProvider => {
+        // Map application status values to committee review equivalents
+        const statusMap: Record<string, string> = {
+            'In-Progress': 'In Progress',
+            'Pending Review': 'Under Review',
+            'Needs Further Review': 'Committee Review',
+            'Completed': 'Approved',
+            'Closed': 'Closed'
+        };
+
+        const highImpactSpecialties = ['Cardiology', 'Oncology', 'Neurology'];
+        const mediumImpactSpecialties = ['Dermatology', 'Pediatrics', 'Orthopedics'];
+        let networkImpact = 'Low';
+        if (highImpactSpecialties.includes(app.specialty)) networkImpact = 'High';
+        else if (mediumImpactSpecialties.includes(app.specialty)) networkImpact = 'Medium';
+
+        // Generate a pseudo submission date (last few days)
+        const date = new Date();
+        date.setDate(date.getDate() - idx - 1);
+        const submissionDate = date.toISOString().split('T')[0];
+
+        return {
+            id: app.id,
+            name: app.name,
+            specialty: app.specialty,
+            market: app.market,
+            status: statusMap[app.status] || app.status,
+            assignedAnalyst: app.assignee || 'Unassigned',
+            submissionDate,
+            networkImpact
+        };
+    };
+
+    const loadProviders = async (): Promise<void> => {
+        try {
+            // Attempt to load first 5 applications as providers (DB source)
+            const applications = await api.getApplications();
+            const mapped = applications
+                .filter(app => ['In-Progress', 'Pending Review', 'Needs Further Review', 'Completed'].includes(app.status))
+                .slice(0, 5)
+                .map((app, idx) => mapApplicationToProvider(app, idx));
+
+            if (mapped.length > 0) {
+                const customProvider = {
+                    id: 'APP-1073',
+                    name: 'Dr. Munther A Hijazin',
+                    specialty: mapped[0]?.specialty || 'Cardiology',
+                    market: mapped[0]?.market || 'California',
+                    status: 'Committee Review',
+                    assignedAnalyst: 'Bob Williams',
+                    submissionDate: new Date().toISOString().split('T')[0],
+                    networkImpact: 'High'
+                };
+                setProviders([customProvider, ...mapped]);
+                return;
+            }
+        } catch (e) {
+            console.warn('Falling back to mockDatabase providers due to error loading applications', e);
+        }
+
+        // Fallback: original mock providers (filter & take first 5)
         const allProviders = mockDatabase.getProviders();
-        // Filter for committee review (assuming 'Under Review' status)
         const reviewProviders = allProviders.filter(p =>
             p.status === 'Under Review' || p.status === 'Committee Review' || p.status === 'In Progress'
-        );
+        ).slice(0, 5);
         setProviders(reviewProviders);
     };
 
-    const handleMenuOpen = (event, provider) => {
+    const handleMenuOpen = (event: any, provider: any) => {
         setAnchorEl(event.currentTarget);
         setMenuProvider(provider);
     };
@@ -85,19 +158,19 @@ const CommitteeReview = () => {
         setMenuProvider(null);
     };
 
-    const handleViewDetails = (provider) => {
+    const handleViewDetails = (provider: any) => {
         setSelectedProvider(provider);
         setDetailsDialogOpen(true);
         handleMenuClose();
     };
 
-    const handleViewChecklist = (provider) => {
+    const handleViewChecklist = (provider: any) => {
         setSelectedProvider(provider);
         setChecklistDialogOpen(true);
         handleMenuClose();
     };
 
-    const handleStartApproval = (provider) => {
+    const handleStartApproval = (provider: any) => {
         setSelectedProvider(provider);
         setApprovalDialogOpen(true);
         setApprovalData({
@@ -107,7 +180,7 @@ const CommitteeReview = () => {
         handleMenuClose();
     };
 
-    const handleGenerateReport = async (provider) => {
+    const handleGenerateReport = async (provider: any) => {
         setSelectedProvider(provider);
         setReportDialogOpen(true);
         setReportLoading(true);
@@ -115,23 +188,28 @@ const CommitteeReview = () => {
         setReportData(null);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/report`, {
-                method: 'POST',
+            const hardcodedId = 'APP-1073';
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/applications/report/${hardcodedId}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    provider_id: 'dr_williams_003'
-                })
+                }
             });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
-            console.log('Report data:', data);
-            setReportData(data);
+            const raw = await response.json();
+            // Normalize possible response shapes
+            const normalized = {
+                ...raw,
+                report_content: raw.report_content || raw.report || raw.reportContent || '',
+                provider_name: raw.provider_name || raw.providerName || selectedProvider?.name || 'Dr. Munther A Hijazin',
+                provider_id: raw.provider_id || raw.meta?.provider_id || 'APP-1073'
+            };
+            console.log('Report data (normalized):', normalized);
+            setReportData(normalized);
         } catch (error) {
             console.error('Error generating report:', error);
             setReportError('Failed to generate credentialing report. Please try again.');
@@ -142,7 +220,7 @@ const CommitteeReview = () => {
         handleMenuClose();
     };
 
-    const handleOpenChat = (provider) => {
+    const handleOpenChat = (provider: any) => {
         setChatProvider(provider);
         setChatOpen(true);
         handleMenuClose();
@@ -201,7 +279,7 @@ const CommitteeReview = () => {
         }
     };
 
-    const getStatusColor = (status) => {
+    const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'approved': return 'success';
             case 'denied': return 'error';
@@ -241,7 +319,7 @@ const CommitteeReview = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {providers.map((provider) => (
+                            {providers.map((provider: any) => (
                                 <TableRow key={provider.id} hover>
                                     <TableCell>
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -280,7 +358,7 @@ const CommitteeReview = () => {
                                     </TableCell>
                                     <TableCell align="center">
                                         <IconButton
-                                            onClick={(e) => handleMenuOpen(e, provider)}
+                                            onClick={(e: any) => handleMenuOpen(e, provider)}
                                             size="small"
                                         >
                                             <MoreVertIcon />
@@ -327,6 +405,7 @@ const CommitteeReview = () => {
                 open={detailsDialogOpen}
                 onClose={() => setDetailsDialogOpen(false)}
                 provider={selectedProvider}
+                onUpdate={() => loadProviders()}
             />
 
             {/* Checklist Manager Dialog */}
@@ -373,7 +452,7 @@ const CommitteeReview = () => {
                             <InputLabel>Decision</InputLabel>
                             <Select
                                 value={approvalData.decision}
-                                onChange={(e) => setApprovalData({
+                                onChange={(e: any) => setApprovalData({
                                     ...approvalData,
                                     decision: e.target.value
                                 })}
@@ -430,7 +509,7 @@ const CommitteeReview = () => {
                         <Box>
                             <Typography variant="h6">Credentialing Report</Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {reportData ? reportData.provider_name || reportData.provider_id : 'dr_williams_003'}
+                                {reportData ? (reportData.provider_name || reportData.provider_id || reportData.meta?.provider_id || selectedProvider?.id || 'APP-1073') : 'APP-1073'}
                             </Typography>
                         </Box>
                         {reportData && (

@@ -213,10 +213,11 @@ export default function ApplicationDetailsPage() {
               </div>
               <Separator />
               <h3 className="font-semibold text-lg font-headline">Submitted Documents</h3>
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={() => handleDownload("npi")} ><FileText className="mr-2" /> NPI</Button>
-                <Button variant="outline" onClick={() => handleDownload("dl")} ><FileText className="mr-2" /> Driving License</Button>
+              <div className="flex flex-wrap gap-4">
+                <Button variant="outline" onClick={() => handleDownload("MEDICAL_TRAINING_CERTIFICATE")} ><FileText className="mr-2" /> Medical Training Certificate</Button>
                 <Button variant="outline" onClick={() => handleDownload("cv")} ><FileText className="mr-2" /> CV/Resume</Button>
+                <Button variant="outline" onClick={() => handleDownload("coi")} ><FileText className="mr-2" /> Certificate of Insurance</Button>
+                <Button variant="outline" onClick={() => handleDownload("dea")} ><FileText className="mr-2" /> DEA/CDS Certificate</Button>
               </div>
             </CardContent>
           </Card>
@@ -234,7 +235,7 @@ export default function ApplicationDetailsPage() {
                 </AlertTitle>
                 <AlertDescription className="mt-2">
                   <p className="text-sm"><span className="font-semibold">Value:</span> DEA Certificate ID: 1234567890, Authorized Schedules: III, IV, V</p>
-                  <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The DEA certificate provided (ID: 1234567890) lists authorization for Schedules III, IV, and V, but does not explicitly include Schedule II, which is required for this specialty (Cardiologist) based on standard practice.</p>
+                  <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The DEA certificate provided (ID: 1234567890) lists authorization for Schedules III, IV, and V, but does not explicitly include Schedule II, which is required for this specialty (Psychiatry & Neurology) based on standard practice.</p>
                   <div className="flex gap-2 mt-2">
                     <Button
                       size="sm"
