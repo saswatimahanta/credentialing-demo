@@ -20,56 +20,60 @@ const intakeModes = [
   { name: 'Availity API', icon: LinkIcon, default: false }
 ];
 
-export default function ApplicationIntake() {
+interface ApplicationIntakeProps {
+  onRosterIntakeComplete?: () => void;
+}
+
+export default function ApplicationIntake({ onRosterIntakeComplete }: ApplicationIntakeProps) {
   const [selectedMode, setSelectedMode] = useState('Roster Intake');
-    const [rosterFile, setRosterFile] = useState(null);
+  const [rosterFile, setRosterFile] = useState<File | null>(null);
   const { toast } = useToast(); // Destructure correctly
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterSuccess, setRosterSuccess] = useState(false);
 
-    const openIntakeFormUrl = async () => {
-        const id = uuidv4();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const openIntakeFormUrl = async () => {
+    const id = uuidv4();
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-        try {
-          await axios.post(`${API_BASE_URL}/api/forms/create-form`, {
-            formId: id,
-            typeForm: 'manual',
-          });
+    try {
+      await axios.post(`${API_BASE_URL}/api/forms/create-form`, {
+        formId: id,
+        typeForm: 'manual',
+      });
 
-          const url = `${window.location.origin}/applications/intake/form?formId=${id}`;
-          window.open(url, '_blank');
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to initialize form. Please try again.",
-          });
-        }
-      };
+      const url = `${window.location.origin}/applications/intake/form?formId=${id}`;
+      window.open(url, '_blank');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to initialize form. Please try again.",
+      });
+    }
+  };
 
-      const copyFormUrl = async () => {
-        const id = uuidv4();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        try {
-          await axios.post(`${API_BASE_URL}/api/forms/create-form`, {
-            formId: id,
-            typeForm: 'manual',
-          });
+  const copyFormUrl = async () => {
+    const id = uuidv4();
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    try {
+      await axios.post(`${API_BASE_URL}/api/forms/create-form`, {
+        formId: id,
+        typeForm: 'manual',
+      });
 
-          const url = `${window.location.origin}/applications/intake/form?formId=${id}&embed=true`;
-          navigator.clipboard.writeText(url);
-          toast({
-            title: "Link Copied",
-            description: "Form link copied to clipboard!",
-          });
-        } catch (error) {
-            console.log(error)
-          toast({
-            title: "Error",
-            description: "Failed to create sharable form link.",
-          });
-        }
-      };
+      const url = `${window.location.origin}/applications/intake/form?formId=${id}&embed=true`;
+      navigator.clipboard.writeText(url);
+      toast({
+        title: "Link Copied",
+        description: "Form link copied to clipboard!",
+      });
+    } catch (error) {
+      console.log(error)
+      toast({
+        title: "Error",
+        description: "Failed to create sharable form link.",
+      });
+    }
+  };
 
   const uploadExcelFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
@@ -77,67 +81,70 @@ export default function ApplicationIntake() {
 
     const file = files[0];
 
-        if (file) {
-            setRosterFile(file);
-            setRosterSuccess(false);
-        }
-      };
+    if (file) {
+      setRosterFile(file);
+      setRosterSuccess(false);
+    }
+  };
   const processRosterFile = async () => {
-        if (!rosterFile) return;
+    if (!rosterFile) return;
 
-        setRosterLoading(true);
-        setRosterSuccess(false);
+    setRosterLoading(true);
+    setRosterSuccess(false);
 
-        try {
-            // Simulate file processing delay
-          await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Simulate file processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-          const response = await axios.post(`${API_BASE_URL}/api/applications`, {
-                  providerId: `dr_roster_${Date.now()}_002`,
-                  formId: uuidv4(),
-                  name: 'Dr. Sarah Johnson',
-                  providerLastName: 'Lautner',
-                  npi: uuidv4(),
-                  email:  'saswati.mahanta@hilabs.com',
-                  phone: '1234567890',
-                  specialty: 'Internal Medicine',
-                  address: 'Somewhere in the world',
-                  source: "Roster Intake",
-                  status:"New",
-                  market:"CA",
-                  assignee:"Barry Allen",
-                  progress: 29,
-          });
-          await axios.post(`${API_BASE_URL}/api/applications`, {
-                  providerId: `dr_roster_${Date.now()}_001`,
-                  formId: uuidv4(),
-                  name: 'Dr. Michael Chen',
-                  providerLastName: 'Doe',
-                  npi: uuidv4(),
-                  email:  'saswati.mahanta@hilabs.com',
-                  phone: '1234567890',
-                  specialty: 'Intal Medicine',
-                  address: 'Somewhere in the world',
-                  source: "Roster Intake",
-                  status:"New",
-                  market:"CA",
-                  assignee:"Barry Allen",
-                  progress: 98,
-                });
+      const response = await axios.post(`${API_BASE_URL}/api/applications`, {
+        providerId: `dr_roster_${Date.now()}_002`,
+        formId: uuidv4(),
+        name: 'Dr. Sarah Johnson',
+        providerLastName: 'Lautner',
+        npi: uuidv4(),
+        email: 'saswati.mahanta@hilabs.com',
+        phone: '1234567890',
+        specialty: 'Internal Medicine',
+        address: 'Somewhere in the world',
+        source: "Roster Intake",
+        status: "New",
+        market: "CA",
+        assignee: "Barry Allen",
+        progress: 29,
+      });
+      await axios.post(`${API_BASE_URL}/api/applications`, {
+        providerId: `dr_roster_${Date.now()}_001`,
+        formId: uuidv4(),
+        name: 'Dr. Michael Chen',
+        providerLastName: 'Doe',
+        npi: uuidv4(),
+        email: 'saswati.mahanta@hilabs.com',
+        phone: '1234567890',
+        specialty: 'Intal Medicine',
+        address: 'Somewhere in the world',
+        source: "Roster Intake",
+        status: "New",
+        market: "CA",
+        assignee: "Barry Allen",
+        progress: 98,
+      });
 
-            setRosterSuccess(true);
-            setRosterFile(null);
+      setRosterSuccess(true);
+      setRosterFile(null);
 
-            // Reset file input
-            const fileInput = document.getElementById('roster-file-input');
-            if (fileInput) fileInput.value = '';
+      // Reset file input
+      const fileInput = document.getElementById('roster-file-input') as HTMLInputElement | null;
+      if (fileInput) fileInput.value = '';
 
-        } catch (error) {
-            console.error('Error processing roster file:', error);
-        } finally {
-            setRosterLoading(false);
-        }
-    };
+      // Notify parent that roster intake completed so it can refresh / reveal records
+      onRosterIntakeComplete?.();
+
+    } catch (error) {
+      console.error('Error processing roster file:', error);
+    } finally {
+      setRosterLoading(false);
+    }
+  };
 
 
   return (
@@ -152,11 +159,11 @@ export default function ApplicationIntake() {
             <CardContent>
               <p className="text-xs text-muted-foreground">
                 {mode.name === 'Manual Entry' ? 'Enter data field by field.' :
-                 mode.name === 'CAQH Integration' ? 'Pull data from CAQH ProView.' :
-                 mode.name === 'Email Parsing' ? 'Extract from email attachments.' :
-                 mode.name === 'Roster Intake' ? 'Upload rosters directly' :
-                 'Sync directly via Availity.'}
-                </p>
+                  mode.name === 'CAQH Integration' ? 'Pull data from CAQH ProView.' :
+                    mode.name === 'Email Parsing' ? 'Extract from email attachments.' :
+                      mode.name === 'Roster Intake' ? 'Upload rosters directly' :
+                        'Sync directly via Availity.'}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -164,23 +171,23 @@ export default function ApplicationIntake() {
 
       <div className="grid grid-cols-1 gap-6">
         {selectedMode === 'Manual Entry' && (
-            <Card className="text-center p-8">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-headline">Provider Application Intake</CardTitle>
-                    <CardDescription>Begin the credentialing process by filling out the provider application form.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button size="lg" onClick={openIntakeFormUrl}>
-                        Start Filling Application <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-4">or</p>
-                    <Button variant="link" className="mt-2" onClick={copyFormUrl}>
-                        Share Web Form Link with Provider
-                    </Button>
-                </CardContent>
-            </Card>
+          <Card className="text-center p-8">
+            <CardHeader>
+              <CardTitle className="text-2xl font-headline">Provider Application Intake</CardTitle>
+              <CardDescription>Begin the credentialing process by filling out the provider application form.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button size="lg" onClick={openIntakeFormUrl}>
+                Start Filling Application <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <p className="text-sm text-muted-foreground mt-4">or</p>
+              <Button variant="link" className="mt-2" onClick={copyFormUrl}>
+                Share Web Form Link with Provider
+              </Button>
+            </CardContent>
+          </Card>
         )}
-       {selectedMode === 'Roster Intake' && (
+        {selectedMode === 'Roster Intake' && (
           <Card className="text-center p-8">
             <CardHeader>
               <CardTitle className="text-2xl font-headline">Roster Automation Intake</CardTitle>
@@ -204,57 +211,57 @@ export default function ApplicationIntake() {
                 Upload File
               </label>
               {rosterFile && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Uploaded: {rosterFile?.name}
-                  </p>
-                )}
+                <p className="text-sm text-muted-foreground mt-2">
+                  Uploaded: {rosterFile?.name}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mt-4"></p>
               <Button variant="link" className="mt-2" onClick={processRosterFile}>
                 Process Roster File
               </Button>
 
               {rosterLoading && (
-                  <div>
-                      <p>
-                          Processing roster file and creating provider applications...
-                      </p>
-                  </div>
+                <div>
+                  <p>
+                    Processing roster file and creating provider applications...
+                  </p>
+                </div>
               )}
 
               {rosterSuccess && (
-                  <div className='bg-green-100 text-left p-4 rounded-md'>
-                      <p className='font-bold'>
-                          Roster Processing Complete!
-                      </p>
-                      <p>
-                          Successfully added 3 provider applications from the roster file:
+                <div className='bg-green-100 text-left p-4 rounded-md'>
+                  <p className='font-bold'>
+                    Roster Processing Complete!
                   </p>
-                  <br/>
-                      <ul>
-                          <li>Dr. Sarah Johnson - Internal Medicine</li>
-                          <li>Dr. Michael Chen - Cardiology</li>
-                          <li>Dr. Emily Rodriguez - Pediatrics</li>
+                  <p>
+                    Successfully added 3 provider applications from the roster file:
+                  </p>
+                  <br />
+                  <ul>
+                    <li>Dr. Sarah Johnson - Internal Medicine</li>
+                    <li>Dr. Michael Chen - Cardiology</li>
+                    <li>Dr. Munther A Hijazin - Psychiatry & Neurology</li>
                   </ul>
-                  <br/>
-                      <p>
-                          You can now view these applications in the Applications tab.
-                      </p>
-                  </div>
+                  <br />
+                  <p>
+                    You can now view these applications in the Applications tab.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
         )}
 
         {selectedMode !== 'Manual Entry' && selectedMode !== 'Roster Intake' && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>{selectedMode}</CardTitle>
-                    <CardDescription>This feature is not yet implemented.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p>Integration with {selectedMode} is planned for a future release.</p>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{selectedMode}</CardTitle>
+              <CardDescription>This feature is not yet implemented.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Integration with {selectedMode} is planned for a future release.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

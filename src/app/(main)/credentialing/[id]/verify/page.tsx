@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Eye, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -27,15 +28,15 @@ interface FieldRow {
 
 // Placeholder initial extracted fields (normally returned by backend)
 const initialRows: FieldRow[] = [
-    { id: 1, attribute: 'University / Issuer', value: 'University of California', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 2, attribute: 'Campus', value: 'Irvine', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 3, attribute: 'Recipient Name', value: 'Mark Steven Shirey Shriau', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 4, attribute: 'Degree', value: 'Doctor of Philosophy', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 5, attribute: 'Field of Study', value: 'Engineering', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 6, attribute: 'Date of Conferral', value: 'June 17, 1989', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
-    { id: 7, attribute: 'Signatories', value: 'George Deukmejian, David P. C', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
-    { id: 8, attribute: 'Seal Detected', value: 'University of California Seal', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
-    { id: 9, attribute: 'Document Type', value: 'Degree Certificate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 1, attribute: 'Issuer', value: 'The American Board of Psychiatry and Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 2, attribute: 'Recipient Name', value: 'Munther A Hijazin', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 3, attribute: 'Title/Degree', value: 'Diplomate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 4, attribute: 'Field of Study', value: 'Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 5, attribute: 'Date of Certification', value: 'February, 2011 - December 31, 2021', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
+    { id: 6, attribute: 'Signatories', value: 'Michael J. Aminoff, Larry R. Faulkner, Victor I. Reus, Janice M. Massey, Jeffrey A. Cohen', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
+    { id: 7, attribute: 'Seal Detected', value: 'American Board of Psychiatry and Neurology Seal', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
+    { id: 8, attribute: 'Document Type', value: 'Board Certificate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 9, attribute: 'Certificate No.', value: '50175', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
 ];
 
 const confidenceBadgeStyles: Record<Confidence, string> = {
@@ -55,6 +56,8 @@ const statusBadgeVariant = (status: RowStatus) => {
 export default function VerifyExtractedDataPage({ params }: { params: { id: string } }) {
     const [rows, setRows] = useState<FieldRow[]>(initialRows);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [evidenceOpen, setEvidenceOpen] = useState(false);
+    const [evidenceImage, setEvidenceImage] = useState<string | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -62,11 +65,11 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
     const partiallySelected = selectedIds.length > 0 && selectedIds.length < rows.length;
 
     const toggleSelectAll = () => {
-        if (allSelected) setSelectedIds([]); else setSelectedIds(rows.map(r => r.id));
+        if (allSelected) setSelectedIds([]); else setSelectedIds(rows.map((r: FieldRow) => r.id));
     };
 
     const toggleRow = (id: number) => {
-        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+        setSelectedIds((prev: number[]) => prev.includes(id) ? prev.filter((x: number) => x !== id) : [...prev, id]);
     };
 
     const approveSelected = () => {
@@ -74,7 +77,7 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
             toast({ title: 'No rows selected', description: 'Select at least one field to approve.' });
             return;
         }
-        setRows(curr => curr.map(r => selectedIds.includes(r.id) ? { ...r, status: 'Approved' } : r));
+        setRows((curr: FieldRow[]) => curr.map((r: FieldRow) => selectedIds.includes(r.id) ? { ...r, status: 'Approved' } : r));
         toast({ title: 'Approved', description: `${selectedIds.length} field(s) approved.` });
         setSelectedIds([]);
     };
@@ -84,9 +87,16 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
             toast({ title: 'No rows selected', description: 'Select at least one field to reject.' });
             return;
         }
-        setRows(curr => curr.map(r => selectedIds.includes(r.id) ? { ...r, status: 'Rejected' } : r));
+        setRows((curr: FieldRow[]) => curr.map((r: FieldRow) => selectedIds.includes(r.id) ? { ...r, status: 'Rejected' } : r));
         toast({ title: 'Rejected', description: `${selectedIds.length} field(s) marked rejected.` });
         setSelectedIds([]);
+    };
+
+    const openEvidence = (rowId: number) => {
+        // Map row 1 to first image; others to second image
+        const img = rowId === 1 ? '/images/2-2.png' : '/images/3-1.png';
+        setEvidenceImage(img);
+        setEvidenceOpen(true);
     };
 
     return (
@@ -103,20 +113,12 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
                 <CardContent>
                     <div className='flex flex-wrap gap-8 text-sm'>
                         <div>
-                            <p className='text-muted-foreground'>Provider Name</p>
-                            <p className='font-medium'>Mark Steven Shirey Shriau</p>
+                            <p className='text-muted-foreground'>Name</p>
+                            <p className='font-medium'>Dr. Munther A Hijazin</p>
                         </div>
                         <div>
                             <p className='text-muted-foreground'>NPI</p>
-                            <p className='font-medium'>8761455663</p>
-                        </div>
-                        <div>
-                            <p className='text-muted-foreground'>Documents</p>
-                            <p className='font-medium'>4</p>
-                        </div>
-                        <div>
-                            <p className='text-muted-foreground'>Health Score</p>
-                            <Badge variant='outline' className='bg-green-50 text-green-700 border-green-200'>93.33%</Badge>
+                            <p className='font-medium'>1952319253</p>
                         </div>
                         <div>
                             <p className='text-muted-foreground'>Last Update</p>
@@ -172,7 +174,7 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
                                         <Badge variant='outline' className={confidenceBadgeStyles[row.confidence]}>{row.confidence}</Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {row.evidence ? <Eye className='h-4 w-4 text-primary cursor-pointer' /> : '-'}
+                                        {row.evidence ? <Eye className='h-4 w-4 text-primary cursor-pointer' onClick={() => openEvidence(row.id)} /> : '-'}
                                     </TableCell>
                                     <TableCell className='text-xs text-muted-foreground'>{row.comments || '-'}</TableCell>
                                     <TableCell>
@@ -186,6 +188,18 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
                     <p className='text-xs text-muted-foreground'>{selectedIds.length} of {rows.length} items selected</p>
                 </CardContent>
             </Card>
+
+            <Dialog open={evidenceOpen} onOpenChange={setEvidenceOpen}>
+                <DialogContent className='max-w-4xl'>
+                    <DialogHeader>
+                        <DialogTitle>Evidence Preview</DialogTitle>
+                    </DialogHeader>
+                    {evidenceImage && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={evidenceImage} alt='Evidence' className='w-full h-auto rounded-md border' />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

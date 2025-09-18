@@ -9,8 +9,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Logo } from '../icons/logo';
+// Removed custom Logo in favor of image file
 import { navLinks } from '@/lib/data';
+import Image from 'next/image';
 import { Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,22 +25,22 @@ import { UserContext } from '../contexts/user-context';
 export default function AppSidebar() {
   const { user, logout } = useContext(UserContext);
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
 
   const handleLogout = () => {
-        logout();
-        router.push('/login');
-    };
+    logout();
+    router.push('/login');
+  };
 
   const isChildActive = (href: string) => {
     // Exact match for most
     if (pathname === href) return true;
-    
+
     // Special handling for nested routes
     if (href === '/applications/intake' && pathname.startsWith('/applications')) {
       return true;
     }
-     if (href === '/credentialing' && pathname.startsWith('/credentialing')) {
+    if (href === '/credentialing' && pathname.startsWith('/credentialing')) {
       return true;
     }
     return false;
@@ -51,10 +52,17 @@ export default function AppSidebar() {
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-4">
         <Link
           href="/executive-summary"
-          className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+          className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary md:h-8 md:w-8 overflow-hidden"
         >
-          <Logo />
-          <span className="sr-only">FastCred</span>
+          <Image
+            src="/images/hilabs.jpg"
+            alt="HiLabs"
+            width={36}
+            height={36}
+            className="object-contain h-9 w-9 md:h-8 md:w-8"
+            priority
+          />
+          <span className="sr-only">HiLabs</span>
         </Link>
         <TooltipProvider>
           {navLinks.map(({ href, label, icon: Icon }) => (
