@@ -42,7 +42,6 @@ export const navLinks = [
   { href: '/credentialing', label: 'Credentialing', icon: Package },
   { href: '/verification-centres', label: 'Verification Centres', icon: Users },
   { href: '/communication', label: 'Communication', icon: Mail },
-  { href: '/reports', label: 'Reports', icon: BarChart2 },
   { href: '/committee-review', label: 'Committee Review', icon: CommitteeReviewIcon },
 ];
 
