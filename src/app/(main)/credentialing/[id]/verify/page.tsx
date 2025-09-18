@@ -30,9 +30,9 @@ interface FieldRow {
 const initialRows: FieldRow[] = [
     { id: 1, attribute: 'Issuer', value: 'The American Board of Psychiatry and Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 2, attribute: 'Recipient Name', value: 'Munther A Hijazin', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 3, attribute: 'Title/Degree', value: 'Diplomate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 3, attribute: 'Certification Type', value: 'Diplomate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 4, attribute: 'Field of Study', value: 'Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 5, attribute: 'Date of Certification', value: 'February, 2011 - December 31, 2021', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
+    { id: 5, attribute: 'Certification Validity Period', value: 'February, 2011 - December 31, 2021', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
     { id: 6, attribute: 'Signatories', value: 'Michael J. Aminoff, Larry R. Faulkner, Victor I. Reus, Janice M. Massey, Jeffrey A. Cohen', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
     { id: 7, attribute: 'Seal Detected', value: 'American Board of Psychiatry and Neurology Seal', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
     { id: 8, attribute: 'Document Type', value: 'Board Certificate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
