@@ -21,9 +21,12 @@ import { Chip } from '@mui/material';
 import { ArrowRight } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import DocumentPopup from '@/components/credentialing/DocumentPopup'
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+
 
 const getDocumentIcon = (status: DocumentStatus['status']) => {
     switch (status) {
@@ -59,6 +62,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
     const [verificationCentre, setVerificationCentre] = useState<VerificationCentre | null>(null);
     const [loading, setLoading] = useState(true);
     const [documentUploadType, setDocumentUploadType] = useState('userUploaded')
+    const [showDocument, setShowDocument] = useState(false)
     const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE'
 
 
@@ -74,6 +78,14 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
     const handleAddToMailList = () => {
         toast({ title: "Email", description: "Add to mail list successful!" });
         return;
+    }
+
+    const handleDocumentPopup = () => {
+        setShowDocument(true)
+    }
+
+    const handleDocumentDownload = () => {
+        console.log('document download')
     }
 
     useEffect(() => {
@@ -283,7 +295,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                                 return (
                                     <button
                                         key={doc.fileType}
-                                        onClick={() => setSelectedDocument(doc)}
+                                        onClick={()=>{setSelectedDocument(doc)}}
                                         className={cn(
                                             "flex-1 min-w-[200px] flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all",
                                             selectedDocument.fileType === doc.fileType ? 'border-primary bg-accent' : 'bg-card hover:bg-accent/50'
@@ -314,7 +326,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                        <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center gap-2 font-semibold text-lg">
                                     <Upload className="h-5 w-5 text-primary" />
@@ -332,8 +344,13 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                                     <span className="font-medium">File Name:</span> {selectedDocument.filename}
                                 </p>
                             </div>
-                            <Button size="sm" className="flex-1 w-full" variant='outline' onClick={() => { router.push(`/credentialing/${id}/verify`) }}>Verify</Button>
+                            <div className='flex gap-2'>
+                                <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentPopup}>View</Button>
+                                <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
+                            </div>
                         </div>
+
+                        <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
 
                         <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                             <div>
@@ -351,7 +368,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                             {/* <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType}/> */}
                             <div className='space-y-2'>
                                 <div className='flex justify-between gap-2'>
-                                    <Button variant='outline' className='flex-1 h-9'>Modify</Button>
+                                    <Button variant='outline'onClick={() => { router.push(`/credentialing/${id}/verify`) }} className='flex-1 h-9' >Modify</Button>
                                     <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
 
                                 </div>
