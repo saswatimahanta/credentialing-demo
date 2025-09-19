@@ -2,11 +2,12 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { Button } from '@/components/ui/button';
 import {
     Box,
     Paper,
     Typography,
-    Button,
+    // Button,
     Table,
     TableBody,
     TableCell,
@@ -27,7 +28,8 @@ import {
     Menu,
     Divider,
     Alert,
-    CircularProgress
+    CircularProgress,
+    Checkbox,
 } from '@mui/material';
 import {
     MoreVert as MoreVertIcon,
@@ -44,6 +46,7 @@ import api from '@/lib/mock-data';
 import ProviderDetailsDialog from '@/components/committee-review/provider-details-dialog';
 import ChecklistManager from '@/components/committee-review/checklist-manager';
 import ProviderChatSidebar from '@/components/committee-review/provider-chat-sidebar';
+import { Card,CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 
 const CommitteeReview = () => {
     const [providers, setProviders] = useState([]);
@@ -63,6 +66,27 @@ const CommitteeReview = () => {
     const [reportData, setReportData] = useState(null);
     const [reportLoading, setReportLoading] = useState(false);
     const [reportError, setReportError] = useState(null);
+    const [filters, setFilters] = useState({
+        specialty: "",
+        market: "",
+        status: "",
+        analyst: "",
+        networkImpact: "",
+    });
+    const [selected, setSelected] = useState<number[]>([]);
+
+    const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const filteredProviders = providers.filter((p: any) =>
+        (filters.specialty === "" || p.specialty.toLowerCase().includes(filters.specialty.toLowerCase())) &&
+        (filters.market === "" || p.market.toLowerCase().includes(filters.market.toLowerCase())) &&
+        (filters.status === "" || p.status.toLowerCase().includes(filters.status.toLowerCase())) &&
+        (filters.analyst === "" || p.assignedAnalyst.toLowerCase().includes(filters.analyst.toLowerCase())) &&
+        (filters.networkImpact === "" || p.networkImpact.toLowerCase().includes(filters.networkImpact.toLowerCase()))
+    );
+
 
     useEffect(() => {
         loadProviders();
@@ -290,300 +314,441 @@ const CommitteeReview = () => {
         }
     };
 
-    return (
-        <Box sx={{ p: 3 }}>
-            {/* Header */}
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    Committee Review
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Review and approve provider credentialing applications
-                </Typography>
-            </Box>
+    const handleCheckboxClick = (id: number) => {
+    setSelected((prev) =>
+        prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+    };
 
-            {/* Providers Table */}
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                <TableContainer>
-                    <Table stickyHeader>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Provider</TableCell>
-                                <TableCell>Specialty</TableCell>
-                                <TableCell>Market</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell>Assigned Analyst</TableCell>
-                                <TableCell>Submission Date</TableCell>
-                                <TableCell>Network Impact</TableCell>
-                                <TableCell align="center">Actions</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {providers.map((provider: any) => (
-                                <TableRow key={provider.id} hover>
+    const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+        setSelected(filteredProviders.map((p: any) => p.id));
+    } else {
+        setSelected(prev =>
+            prev.filter(id => !filteredProviders.some((p: any) => p.id === id))
+        );
+    }
+    };
+    const [organization, setOrganization] = useState('');
+
+    const handleChange = (event) => {
+        setOrganization(event.target.value);
+    };
+
+    const handleApprove = () => {
+        if (selected.length === 0) return;
+
+        const updatedProviders = providers.map((p: any) =>
+            selected.includes(p.id)
+            ? { ...p, status: "Approved" }
+            : p
+        );
+
+        setProviders(updatedProviders);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                    Committee Review
+                </CardTitle>
+                <CardDescription>
+                    <div className='flex justify-between'>
+                        <p>Review and approve provider credentialing applications</p>
+                        <div className='flex justify-center items-center'>
+                            <FormControl sx={{ m: 1, minWidth: 150}} size="small">
+                                <InputLabel id="demo-select-small-label">Organization</InputLabel>
+                                <Select
+                                    labelId="demo-select-small-label"
+                                    id="demo-select-small"
+                                    value={organization}
+                                    label="Organization"
+                                    onChange={handleChange}
+                                >
+                                    <MenuItem value="">
+                                    <em>None</em>
+                                    </MenuItem>
+                                    <MenuItem value={10}>Org 1</MenuItem>
+                                    <MenuItem value={20}>Org 2</MenuItem>
+                                    <MenuItem value={30}>Org 3</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <Button
+                                variant={selected.length > 0 ? "default" : "ghost"}
+                                onClick={handleApprove}
+                            >
+                                Approve
+                            </Button>
+
+                        </div>
+                    </div>
+                </CardDescription>
+
+            </CardHeader>
+            <CardContent>
+            <Box>
+
+                {/* Providers Table */}
+                <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                    <TableContainer>
+                        <Table stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell padding="checkbox">
+                                    <Checkbox
+                                        indeterminate={
+                                            selected.some(id => filteredProviders.some(p => p.id === id)) &&
+                                            selected.length < filteredProviders.length
+                                        }
+                                        checked={
+                                            filteredProviders.length > 0 &&
+                                            filteredProviders.every(p => selected.includes(p.id))
+                                        }
+                                        onChange={handleSelectAll}
+                                    />
+
+                                    </TableCell>
+                                    <TableCell>Provider</TableCell>
+                                    <TableCell>Specialty</TableCell>
+                                    <TableCell>Market</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Assigned Analyst</TableCell>
+                                    <TableCell>Submission Date</TableCell>
+                                    <TableCell>Network Impact</TableCell>
+                                    <TableCell align="center">Actions</TableCell>
+                                </TableRow>
+
+                                {/* 🔽 Filter Row */}
+                                <TableRow>
+                                    <TableCell /> {/* Empty for checkbox column */}
+                                    <TableCell /> {/* Provider column - no filter */}
                                     <TableCell>
-                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    <TextField
+                                        size="small"
+                                        variant="outlined"
+                                        placeholder="Filter"
+                                        value={filters.specialty}
+                                        onChange={(e) => handleFilterChange("specialty", e.target.value)}
+                                    />
+                                    </TableCell>
+                                    <TableCell>
+                                    <TextField
+                                        size="small"
+                                        variant="outlined"
+                                        placeholder="Filter"
+                                        value={filters.market}
+                                        onChange={(e) => handleFilterChange("market", e.target.value)}
+                                    />
+                                    </TableCell>
+                                    <TableCell>
+                                    <TextField
+                                        size="small"
+                                        variant="outlined"
+                                        placeholder="Filter"
+                                        value={filters.status}
+                                        onChange={(e) => handleFilterChange("status", e.target.value)}
+                                    />
+                                    </TableCell>
+                                    <TableCell>
+                                    <TextField
+                                        size="small"
+                                        variant="outlined"
+                                        placeholder="Filter"
+                                        value={filters.analyst}
+                                        onChange={(e) => handleFilterChange("analyst", e.target.value)}
+                                    />
+                                    </TableCell>
+                                    <TableCell /> {/* Submission Date - leave out filter for now */}
+                                    <TableCell>
+                                    <TextField
+                                        size="small"
+                                        variant="outlined"
+                                        placeholder="Filter"
+                                        value={filters.networkImpact}
+                                        onChange={(e) => handleFilterChange("networkImpact", e.target.value)}
+                                    />
+                                    </TableCell>
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+                                {filteredProviders.map((provider: any) => {
+                                    const isChecked = selected.includes(provider.id);
+
+                                    return (
+                                    <TableRow key={provider.id} hover>
+                                        <TableCell padding="checkbox">
+                                        <Checkbox
+                                            checked={isChecked}
+                                            onChange={() => handleCheckboxClick(provider.id)}
+                                        />
+                                        </TableCell>
+                                        <TableCell>
+                                        <Box sx={{ display: "flex", alignItems: "center" }}>
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 'medium' }}>
-                                                    {provider.name}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    ID: {provider.id}
-                                                </Typography>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: "medium" }}>
+                                                {provider.name}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                ID: {provider.id}
+                                            </Typography>
                                             </Box>
                                         </Box>
-                                    </TableCell>
-                                    <TableCell>{provider.specialty}</TableCell>
-                                    <TableCell>{provider.market}</TableCell>
-                                    <TableCell>
+                                        </TableCell>
+                                        <TableCell>{provider.specialty}</TableCell>
+                                        <TableCell>{provider.market}</TableCell>
+                                        <TableCell>
                                         <Chip
                                             label={provider.status}
                                             color={getStatusColor(provider.status)}
                                             size="small"
                                         />
-                                    </TableCell>
-                                    <TableCell>{provider.assignedAnalyst}</TableCell>
-                                    <TableCell>{provider.submissionDate}</TableCell>
-                                    <TableCell>
+                                        </TableCell>
+                                        <TableCell>{provider.assignedAnalyst}</TableCell>
+                                        <TableCell>{provider.submissionDate}</TableCell>
+                                        <TableCell>
                                         <Chip
                                             label={provider.networkImpact}
                                             color={
-                                                provider.networkImpact === 'High' ? 'error' :
-                                                    provider.networkImpact === 'Medium' ? 'warning' : 'success'
+                                            provider.networkImpact === "High"
+                                                ? "error"
+                                                : provider.networkImpact === "Medium"
+                                                ? "warning"
+                                                : "success"
                                             }
                                             variant="outlined"
                                             size="small"
                                         />
-                                    </TableCell>
-                                    <TableCell align="center">
+                                        </TableCell>
+                                        <TableCell align="center">
                                         <IconButton
                                             onClick={(e: any) => handleMenuOpen(e, provider)}
                                             size="small"
                                         >
                                             <MoreVertIcon />
                                         </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
-
-            {/* Action Menu */}
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-            >
-                <MenuItem onClick={() => handleViewDetails(menuProvider)}>
-                    <VisibilityIcon sx={{ mr: 1 }} />
-                    View Details
-                </MenuItem>
-                <MenuItem onClick={() => handleViewChecklist(menuProvider)}>
-                    <AssignmentIcon sx={{ mr: 1 }} />
-                    View Checklist
-                </MenuItem>
-                <MenuItem onClick={() => handleGenerateReport(menuProvider)}>
-                    <AssessmentIcon sx={{ mr: 1 }} />
-                    Generate Report
-                </MenuItem>
-                <MenuItem onClick={() => handleOpenChat(menuProvider)}>
-                    <PersonIcon sx={{ mr: 1 }} />
-                    Chat with AI
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={() => handleStartApproval(menuProvider)}>
-                    <CheckCircleIcon sx={{ mr: 1 }} />
-                    Approve/Deny
-                </MenuItem>
-            </Menu>
-
-            {/* Provider Details Dialog */}
-            <ProviderDetailsDialog
-                open={detailsDialogOpen}
-                onClose={() => setDetailsDialogOpen(false)}
-                provider={selectedProvider}
-                onUpdate={() => loadProviders()}
-            />
-
-            {/* Checklist Manager Dialog */}
-            <Dialog
-                open={checklistDialogOpen}
-                onClose={() => setChecklistDialogOpen(false)}
-                maxWidth="lg"
-                fullWidth
-            >
-                <DialogTitle>
-                    Provider Checklist - {selectedProvider?.name}
-                </DialogTitle>
-                <DialogContent>
-                    {selectedProvider && (
-                        <ChecklistManager
-                            provider={selectedProvider}
-                            onUpdate={() => {
-                                loadProviders();
-                                setChecklistDialogOpen(false);
-                            }}
-                        />
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setChecklistDialogOpen(false)}>
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Approval Dialog */}
-            <Dialog
-                open={approvalDialogOpen}
-                onClose={() => setApprovalDialogOpen(false)}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogTitle>
-                    Review Application - {selectedProvider?.name}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ pt: 2 }}>
-                        <FormControl fullWidth sx={{ mb: 3 }}>
-                            <InputLabel>Decision</InputLabel>
-                            <Select
-                                value={approvalData.decision}
-                                onChange={(e: any) => setApprovalData({
-                                    ...approvalData,
-                                    decision: e.target.value
+                                        </TableCell>
+                                    </TableRow>
+                                    );
                                 })}
-                                label="Decision"
-                            >
-                                <MenuItem value="approve">Approve</MenuItem>
-                                <MenuItem value="deny">Deny</MenuItem>
-                            </Select>
-                        </FormControl>
+                                </TableBody>
 
-                        <TextField
-                            fullWidth
-                            multiline
-                            rows={4}
-                            label="Comments"
-                            value={approvalData.comments}
-                            onChange={(e) => setApprovalData({
-                                ...approvalData,
-                                comments: e.target.value
-                            })}
-                            required
-                            helperText="Please provide reasoning for your decision"
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setApprovalDialogOpen(false)}>
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleApprovalSubmit}
-                        color={approvalData.decision === 'approve' ? 'success' : 'error'}
-                        startIcon={<SendIcon />}
-                        disabled={!approvalData.comments.trim()}
-                    >
-                        {approvalData.decision === 'approve' ? 'Approve' : 'Deny'} Application
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        </Table>
+                    </TableContainer>
+                </Paper>
 
-            {/* Credentialing Report Dialog */}
-            <Dialog
-                open={reportDialogOpen}
-                onClose={handleReportClose}
-                maxWidth="lg"
-                fullWidth
-                PaperProps={{
-                    sx: { minHeight: '80vh' }
-                }}
-            >
-                <DialogTitle>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box>
-                            <Typography variant="h6">Credentialing Report</Typography>
-                            <Typography variant="subtitle2" color="text.secondary">
-                                {reportData ? (reportData.provider_name || reportData.provider_id || reportData.meta?.provider_id || selectedProvider?.id || 'APP-1073') : 'APP-1073'}
-                            </Typography>
+                {/* Action Menu */}
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                >
+                    <MenuItem onClick={() => handleViewDetails(menuProvider)}>
+                        View Details
+                    </MenuItem>
+                    <MenuItem onClick={() => handleViewChecklist(menuProvider)}>
+                        View Checklist
+                    </MenuItem>
+                    <MenuItem onClick={() => handleGenerateReport(menuProvider)}>
+                        Generate Report
+                    </MenuItem>
+                    <MenuItem onClick={() => handleOpenChat(menuProvider)}>
+                        Chat with AI
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleStartApproval(menuProvider)}>
+                        Approve/Deny
+                    </MenuItem>
+                </Menu>
+
+                {/* Provider Details Dialog */}
+                <ProviderDetailsDialog
+                    open={detailsDialogOpen}
+                    onClose={() => setDetailsDialogOpen(false)}
+                    provider={selectedProvider}
+                    onUpdate={() => loadProviders()}
+                />
+
+                {/* Checklist Manager Dialog */}
+                <Dialog
+                    open={checklistDialogOpen}
+                    onClose={() => setChecklistDialogOpen(false)}
+                    maxWidth="lg"
+                    fullWidth
+                >
+                    <DialogTitle>
+                        Provider Checklist - {selectedProvider?.name}
+                    </DialogTitle>
+                    <DialogContent>
+                        {selectedProvider && (
+                            <ChecklistManager
+                                provider={selectedProvider}
+                                onUpdate={() => {
+                                    loadProviders();
+                                    setChecklistDialogOpen(false);
+                                }}
+                            />
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setChecklistDialogOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Approval Dialog */}
+                <Dialog
+                    open={approvalDialogOpen}
+                    onClose={() => setApprovalDialogOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                >
+                    <DialogTitle>
+                        Review Application - {selectedProvider?.name}
+                    </DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ pt: 2 }}>
+                            <FormControl fullWidth sx={{ mb: 3 }}>
+                                <InputLabel>Decision</InputLabel>
+                                <Select
+                                    value={approvalData.decision}
+                                    onChange={(e: any) => setApprovalData({
+                                        ...approvalData,
+                                        decision: e.target.value
+                                    })}
+                                    label="Decision"
+                                >
+                                    <MenuItem value="approve">Approve</MenuItem>
+                                    <MenuItem value="deny">Deny</MenuItem>
+                                </Select>
+                            </FormControl>
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={4}
+                                label="Comments"
+                                value={approvalData.comments}
+                                onChange={(e) => setApprovalData({
+                                    ...approvalData,
+                                    comments: e.target.value
+                                })}
+                                required
+                                helperText="Please provide reasoning for your decision"
+                            />
                         </Box>
-                        {reportData && (
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setApprovalDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleApprovalSubmit}
+                            color={approvalData.decision === 'approve' ? 'success' : 'error'}
+                            startIcon={<SendIcon />}
+                            disabled={!approvalData.comments.trim()}
+                        >
+                            {approvalData.decision === 'approve' ? 'Approve' : 'Deny'} Application
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Credentialing Report Dialog */}
+                <Dialog
+                    open={reportDialogOpen}
+                    onClose={handleReportClose}
+                    maxWidth="lg"
+                    fullWidth
+                    PaperProps={{
+                        sx: { minHeight: '80vh' }
+                    }}
+                >
+                    <DialogTitle>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                                <Typography variant="h6">Credentialing Report</Typography>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    {reportData ? (reportData.provider_name || reportData.provider_id || reportData.meta?.provider_id || selectedProvider?.id || 'APP-1073') : 'APP-1073'}
+                                </Typography>
+                            </Box>
+                            {reportData && (
+                                <Button
+                                    startIcon={<DownloadIcon />}
+                                    onClick={downloadReport}
+                                    variant="outlined"
+                                    size="small"
+                                >
+                                    Download Report
+                                </Button>
+                            )}
+                        </Box>
+                    </DialogTitle>
+                    <DialogContent>
+                        {reportLoading && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                                <CircularProgress />
+                                <Typography sx={{ ml: 2 }}>Generating credentialing report...</Typography>
+                            </Box>
+                        )}
+
+                        {reportError && (
+                            <Alert severity="error" sx={{ mb: 2 }}>
+                                {reportError}
+                            </Alert>
+                        )}
+
+                        {reportData && reportData.report_content && (
+                            <Box sx={{ pt: 2 }}>
+                                <Paper sx={{ p: 3, maxHeight: '70vh', overflow: 'auto' }}>
+                                    <ReactMarkdown
+                                        components={{
+                                            // Custom styling for markdown elements
+                                            h1: ({ children }) => <Typography variant="h4" component="h1" gutterBottom sx={{ borderBottom: '2px solid #e0e0e0', pb: 1, mb: 2 }}>{children}</Typography>,
+                                            h2: ({ children }) => <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3, mb: 2, color: 'primary.main' }}>{children}</Typography>,
+                                            h3: ({ children }) => <Typography variant="h6" component="h3" gutterBottom sx={{ mt: 2, mb: 1 }}>{children}</Typography>,
+                                            p: ({ children }) => <Typography variant="body1" paragraph>{children}</Typography>,
+                                            li: ({ children }) => <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>{children}</Typography>,
+                                            table: ({ children }) => <TableContainer component={Paper} variant="outlined" sx={{ my: 2 }}><Table size="small">{children}</Table></TableContainer>,
+                                            th: ({ children }) => <TableCell component="th" sx={{ fontWeight: 'bold', bgcolor: 'grey.100' }}>{children}</TableCell>,
+                                            td: ({ children }) => <TableCell>{children}</TableCell>,
+                                            code: ({ children }) => <Box component="code" sx={{ bgcolor: 'grey.100', p: 0.5, borderRadius: 1, fontFamily: 'monospace' }}>{children}</Box>,
+                                            pre: ({ children }) => <Box component="pre" sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, overflow: 'auto', fontFamily: 'monospace' }}>{children}</Box>,
+                                            blockquote: ({ children }) => <Box component="blockquote" sx={{ borderLeft: '4px solid #ccc', pl: 2, fontStyle: 'italic', color: 'text.secondary' }}>{children}</Box>
+                                        }}
+                                    >
+                                        {reportData.report_content}
+                                    </ReactMarkdown>
+                                </Paper>
+                            </Box>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleReportClose}>Close</Button>
+                        {reportData && reportData.report_content && (
                             <Button
+                                variant="contained"
                                 startIcon={<DownloadIcon />}
                                 onClick={downloadReport}
-                                variant="outlined"
-                                size="small"
                             >
                                 Download Report
                             </Button>
                         )}
-                    </Box>
-                </DialogTitle>
-                <DialogContent>
-                    {reportLoading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
-                            <CircularProgress />
-                            <Typography sx={{ ml: 2 }}>Generating credentialing report...</Typography>
-                        </Box>
-                    )}
+                    </DialogActions>
+                </Dialog>
 
-                    {reportError && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {reportError}
-                        </Alert>
-                    )}
-
-                    {reportData && reportData.report_content && (
-                        <Box sx={{ pt: 2 }}>
-                            <Paper sx={{ p: 3, maxHeight: '70vh', overflow: 'auto' }}>
-                                <ReactMarkdown
-                                    components={{
-                                        // Custom styling for markdown elements
-                                        h1: ({ children }) => <Typography variant="h4" component="h1" gutterBottom sx={{ borderBottom: '2px solid #e0e0e0', pb: 1, mb: 2 }}>{children}</Typography>,
-                                        h2: ({ children }) => <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3, mb: 2, color: 'primary.main' }}>{children}</Typography>,
-                                        h3: ({ children }) => <Typography variant="h6" component="h3" gutterBottom sx={{ mt: 2, mb: 1 }}>{children}</Typography>,
-                                        p: ({ children }) => <Typography variant="body1" paragraph>{children}</Typography>,
-                                        li: ({ children }) => <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>{children}</Typography>,
-                                        table: ({ children }) => <TableContainer component={Paper} variant="outlined" sx={{ my: 2 }}><Table size="small">{children}</Table></TableContainer>,
-                                        th: ({ children }) => <TableCell component="th" sx={{ fontWeight: 'bold', bgcolor: 'grey.100' }}>{children}</TableCell>,
-                                        td: ({ children }) => <TableCell>{children}</TableCell>,
-                                        code: ({ children }) => <Box component="code" sx={{ bgcolor: 'grey.100', p: 0.5, borderRadius: 1, fontFamily: 'monospace' }}>{children}</Box>,
-                                        pre: ({ children }) => <Box component="pre" sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, overflow: 'auto', fontFamily: 'monospace' }}>{children}</Box>,
-                                        blockquote: ({ children }) => <Box component="blockquote" sx={{ borderLeft: '4px solid #ccc', pl: 2, fontStyle: 'italic', color: 'text.secondary' }}>{children}</Box>
-                                    }}
-                                >
-                                    {reportData.report_content}
-                                </ReactMarkdown>
-                            </Paper>
-                        </Box>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleReportClose}>Close</Button>
-                    {reportData && reportData.report_content && (
-                        <Button
-                            variant="contained"
-                            startIcon={<DownloadIcon />}
-                            onClick={downloadReport}
-                        >
-                            Download Report
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
-
-            {/* Provider Chat Sidebar */}
-            <ProviderChatSidebar
-                open={chatOpen}
-                onClose={handleChatClose}
-                provider={chatProvider}
-            />
-        </Box>
+                {/* Provider Chat Sidebar */}
+                <ProviderChatSidebar
+                    open={chatOpen}
+                    onClose={handleChatClose}
+                    provider={chatProvider}
+                />
+            </Box>
+            </CardContent>
+        </Card>
     );
 };
 

@@ -63,6 +63,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
     const [loading, setLoading] = useState(true);
     const [documentUploadType, setDocumentUploadType] = useState('userUploaded')
     const [showDocument, setShowDocument] = useState(false)
+    const [providerName, setProviderName] = useState('')
     const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE'
 
 
@@ -85,7 +86,12 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
     }
 
     const handleDocumentDownload = () => {
-        console.log('document download')
+        const link = document.createElement("a");
+        link.href = imagePath;
+        link.download = imagePath || imagePath.split("/").pop() || "file";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     useEffect(() => {
@@ -206,6 +212,21 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
         loadVerificationCenter();
     }, [selectedDocument]);
 
+    useEffect(() => {
+        async function loadData() {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/applications`);
+            console.log(response)
+            const index = response.data.findIndex(app => app.id === id)
+            setProviderName(response.data[index].name)
+
+        } catch (error) {
+            console.error('Failed to fetch applications:', error);
+        }
+        }
+
+        loadData();
+    }, []);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -229,7 +250,7 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                     <Link href="/credentialing"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Credentialing</Link>
                 </Button>
                 <div className='flex justify-between'>
-                    <h1 className="text-2xl font-bold tracking-tight font-headline">Credentialing Workflow for {id}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight font-headline">Credentialing Workflow for {providerName }</h1>
                     <Button size="sm">Send to Committee</Button>
                 </div>
             </div>
@@ -338,7 +359,8 @@ export default function CredentialingWorkflowPage({ params }: { params: { id: st
                                     width={600}
                                     height={400}
                                     className="rounded-md border aspect-[3/2] object-cover cursor-pointer" data-ai-hint="medical license document"
-                                    onClick={() => handleDownload(selectedDocument.fileType)} />}
+                                    // onClick={() => handleDownload(selectedDocument.fileType)}
+                                />}
 
                                 <p className="text-sm text-slate-600">
                                     <span className="font-medium">File Name:</span> {selectedDocument.filename}

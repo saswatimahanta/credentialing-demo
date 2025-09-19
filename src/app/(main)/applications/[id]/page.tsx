@@ -23,6 +23,8 @@ import { useToast } from '@/hooks/use-toast';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DocumentPopup from '@/components/credentialing/DocumentPopup';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -41,6 +43,8 @@ export default function ApplicationDetailsPage() {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
   const [summary, setSummary] = useState({});
+  const [imagePath, setImagePath] = useState('');
+  const [showDocument, setShowDocument] = useState(false);
 
   const [suggestion, setSuggestion] = useState<{ suggestion: string, reasoning: string, confidenceScore: number } | null>(null);
 
@@ -151,25 +155,27 @@ export default function ApplicationDetailsPage() {
     setSuggestion(result);
   }
 
-  const handleDownload = async (type: String) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/documents/download?id=${id}&type=${type}`, {
-        method: 'GET',
-      });
+  const handleDownload = (fileName) => {
+    setImagePath(`/images/${fileName}.jpg`);
+    setShowDocument(true);
+    // try {
+    //   const response = await fetch(`${API_BASE_URL}/api/documents/download?id=${id}&type=${type}`, {
+    //     method: 'GET',
+    //   });
 
-      if (!response.ok) throw new Error('Failed to download');
+    //   if (!response.ok) throw new Error('Failed to download');
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+    //   const blob = await response.blob();
+    //   const url = window.URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${type.toUpperCase()}_${id}.pdf`; // dynamic filename
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
+    //   const a = document.createElement("a");
+    //   a.href = url;
+    //   a.download = `${type.toUpperCase()}_${id}.pdf`; // dynamic filename
+    //   a.click();
+    //   window.URL.revokeObjectURL(url);
+    // } catch (error) {
+    //   console.error("Download failed:", error);
+    // }
   };
 
 
@@ -215,12 +221,15 @@ export default function ApplicationDetailsPage() {
               <h3 className="font-semibold text-lg font-headline">Submitted Documents</h3>
               <div className="flex flex-wrap gap-4">
                 <Button variant="outline" onClick={() => handleDownload("MEDICAL_TRAINING_CERTIFICATE")} ><FileText className="mr-2" /> Medical Training Certificate</Button>
-                <Button variant="outline" onClick={() => handleDownload("cv")} ><FileText className="mr-2" /> CV/Resume</Button>
+                <Button variant="outline" onClick={() => handleDownload("CV")} ><FileText className="mr-2" /> CV/Resume</Button>
                 <Button variant="outline" onClick={() => handleDownload("coi")} ><FileText className="mr-2" /> Certificate of Insurance</Button>
                 <Button variant="outline" onClick={() => handleDownload("dea")} ><FileText className="mr-2" /> DEA/CDS Certificate</Button>
               </div>
+
             </CardContent>
           </Card>
+          <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
+
 
           <Card>
             <CardHeader>
