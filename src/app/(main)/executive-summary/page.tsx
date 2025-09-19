@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { kpiData, summaryTiles } from '@/lib/mock-data';
+import { summaryTiles } from '@/lib/mock-data';
 import { KpiCard } from '@/components/kpi-card';
 import { StatusPieChart } from '@/components/charts/status-pie-chart';
 import { TimeToCredentialBarChart } from '@/components/charts/time-to-credential-bar-chart';
@@ -13,18 +13,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { Box, Typography } from '@mui/material';
-import mockDatabase from '@/components/committee-review/mockDatabase';
 import { SpecialtyChart } from '@/components/charts/specialty-chart';
 import { MarketDistributionChart } from '@/components/charts/market-distribution';
 import { NetworkImpact } from '@/components/charts/network-impact';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function ExecutiveSummary() {
-  const providers = mockDatabase.getProviders();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalItems, setModalItems] = useState<{ id: string; name: string; status: string; market: string; }[]>([]);
-
+  const [kpiData, setKpiData] = useState({})
+  const [timeToCredentialData, setTimeToCredentialData] = useState([])
+  const [specialtyData, setSpecialtyData] = useState([])
+  const [marketValue, setMarketValue] = useState('all')
+  const [networkImpactData, setNetworkImpactData] = useState([])
   const handleViewClick = (title: string, items: { id: string; name: string; status: string; market: string; }[]) => {
     setModalTitle(title);
     setModalItems(items);
@@ -39,13 +43,57 @@ export default function ExecutiveSummary() {
         default: return 'outline';
     }
   }
+  useEffect(() => {
+      async function loadData() {
+        try {
+          const response = await axios.get(`${API_BASE_URL}/api/executive-summary`);
+          const kpi =  {
+              totalApplications: { value: response?.data?.totalApplications, change: '+15.2%', label: 'Total Applications', trend: [{month: 'Jan', value: 100}, {month: 'Feb', value: 120}, {month: 'Mar', value: 150}, {month: 'Apr', value: 130}, {month: 'May', value: 180}, {month: 'Jun', value: 200}] },
+              completed: { value: response?.data?.completed, change: '+10.1%', label: 'Completed', trend: [{month: 'Jan', value: 70}, {month: 'Feb', value: 80}, {month: 'Mar', value: 90}, {month: 'Apr', value: 85}, {month: 'May', value: 100}, {month: 'Jun', value: 110}] },
+              inProgress: { value: response?.data?.inProgress, change: '+5.5%', label: 'In-Progress', trend: [{month: 'Jan', value: 20}, {month: 'Feb', value: 25}, {month: 'Mar', value: 30}, {month: 'Apr', value: 28}, {month: 'May', value: 40}, {month: 'Jun', value: 45}] },
+              notStarted: { value: response?.data?.notStarted, change: '-2.0%', label: 'Not Started', trend: [{month: 'Jan', value: 10}, {month: 'Feb', value: 12}, {month: 'Mar', value: 15}, {month: 'Apr', value: 13}, {month: 'May', value: 20}, {month: 'Jun', value: 25}] },
+              needsReview: { value: response?.data?.needsFurtherReview, change: '+25%', label: 'Needs Further Review', trend: [{month: 'Jan', value: 1}, {month: 'Feb', value: 2}, {month: 'Mar', value: 4}, {month: 'Apr', value: 3}, {month: 'May', value: 5}, {month: 'Jun', value: 6}] },
+          }
+          setKpiData(kpi)
 
+          const barChartData = response?.data?.avgTimeToCredential.map((row) => {
+            return {
+              month: row.month,
+              avgTime: row.days,
+            }
+          })
+          setTimeToCredentialData(barChartData)
+
+           const specialtyChartData = response?.data?.topSpecialities.map((row) => {
+            return {
+              status: row.specialty,
+              count: row.count,
+              percentage: row.percent,
+            }
+          })
+          setSpecialtyData(specialtyChartData)
+
+          const total = response?.data?.totalApplications
+          const impactChartData = [
+            { impact: 'High', count: response?.data?.highImpact, percent: (response?.data?.highImpact / total) * 100, color: '#f44336' },
+            { impact: 'Medium', count: response?.data?.mediumImpact, percent: (response?.data?.mediumImpact / total) * 100, color: '#ff9800' },
+            { impact: 'Low', count: response?.data?.lowImpact, percent: (response?.data?.lowImpact / total) * 100, color: '#4caf50' }
+          ]
+          setNetworkImpactData(impactChartData)
+          console.log('response', response.data)
+        } catch (error) {
+          console.error('Failed to fetch applications:', error);
+        }
+      }
+
+      loadData();
+    }, []);
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <h1 className="text-2xl font-bold tracking-tight font-headline">Executive Summary</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
-          <Select defaultValue="all">
+          <Select defaultValue="all" onValueChange={(e)=>{setMarketValue(e)}}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Market" />
             </SelectTrigger>
@@ -97,7 +145,7 @@ export default function ExecutiveSummary() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="lg:col-span-4">
-          <TimeToCredentialBarChart />
+          <TimeToCredentialBarChart barChartData={timeToCredentialData}/>
         </div>
         <div className="lg:col-span-3">
             <StatusPieChart />
@@ -107,16 +155,15 @@ export default function ExecutiveSummary() {
       </div>
 
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-6'>
-        <div className="lg:col-span-2">
-          <SpecialtyChart/>
+        <div className={marketValue === 'ca' ? 'lg:col-span-4' : ' lg:col-span-2'}>
+          <SpecialtyChart data={specialtyData} market={marketValue} />
 
         </div>
-        <div className="lg:col-span-2">
+        {marketValue!=='ca' && <div className="lg:col-span-2">
             <MarketDistributionChart />
-
-        </div>
+        </div>}
         <div className="lg:col-span-2">
-            <NetworkImpact />
+          <NetworkImpact distribution={networkImpactData} />
 
         </div>
       </div>

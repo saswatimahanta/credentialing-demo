@@ -10,13 +10,14 @@ import {
 } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { Box, Typography } from '@mui/material';
-export function NetworkImpact() {
-  const total = 250;
-  const distribution = [
-    { impact: 'High', count: 113, percent: (113 / total) * 100, color: '#f44336' },
-    { impact: 'Medium', count: 100, percent: (100 / total) * 100, color: '#ff9800' },
-    { impact: 'Low', count: 37, percent: (37 / total) * 100, color: '#4caf50' }
-  ];
+export function NetworkImpact({distribution}) {
+  console.log('distribution', distribution)
+  // const total = 250;
+  // const distribution = [
+  //   { impact: 'High', count: 113, percent: (113 / total) * 100, color: '#f44336' },
+  //   { impact: 'Medium', count: 100, percent: (100 / total) * 100, color: '#ff9800' },
+  //   { impact: 'Low', count: 37, percent: (37 / total) * 100, color: '#4caf50' }
+  // ];
   return (
     <Card className="flex flex-col">
       <CardHeader>

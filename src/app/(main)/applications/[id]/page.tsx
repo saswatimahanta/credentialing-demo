@@ -54,6 +54,7 @@ export default function ApplicationDetailsPage() {
       try {
         if (!id) return;
         const response = await axios.get(`${API_BASE_URL}/api/applications/${id}`);
+        console.log('applications',response.data)
         setApplication(response.data);
 
         const issuesData = await axios.get(`${API_BASE_URL}/api/applications/aiissues/${id}`);
@@ -206,12 +207,12 @@ export default function ApplicationDetailsPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Application Details: {application.name} ({application.id})</CardTitle>
+              <CardTitle>Application Details: {application.provider.providerName}</CardTitle>
               <CardDescription>Review submitted information and attached documents.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="font-semibold">Provider ID:</span> {application.providerId}</div>
+                <div><span className="font-semibold">Provider ID:</span> {application.provider.providerId}</div>
                 <div><span className="font-semibold">NPI:</span> {application.npi}</div>
                 <div><span className="font-semibold">Specialty:</span> {application.specialty}</div>
                 <div><span className="font-semibold">Market:</span> {application.market}</div>

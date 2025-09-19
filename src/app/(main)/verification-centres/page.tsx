@@ -22,13 +22,13 @@ export default function VerificationCentresPage() {
       const providers = await mockApi.getProvidersByOrg();
 
       const keyMapping: Record<string, string> = {
-        "ml": "Medical License",
-        "degree": "Degree",
-        "npi": "NPI",
+        // "ml": "Medical License",
+        "medical-training": "Medical Training",
+        // "npi": "NPI",
         "passport": "Passport",
         "malpractice-history": "Malpractice-History",
         "dl": "Driving License",
-        "dea": "DEA",
+        // "dea": "DEA",
         "cv/resume": "CV/Resume",
       };
 
@@ -66,7 +66,7 @@ export default function VerificationCentresPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight font-headline">Verification Centres</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-headline">Outreach Verification Center</h1>
         <p className="text-muted-foreground">Manage and contact organizations for primary source verification.</p>
       </div>
 

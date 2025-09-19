@@ -18,11 +18,11 @@ import axios from 'axios';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-        case 'Completed': return 'default';
+        case 'COMPLETED': return 'default';
         case 'Pending Review': return 'secondary';
         case 'Needs Further Review': return 'destructive';
         case 'Sanctioned': return 'destructive';
-        case 'In-Progress':
+        case 'IN_PROGRESS':
         case 'Closed':
         default: return 'outline';
     }
@@ -46,6 +46,7 @@ export default function ApplicationsPage() {
     const loadApplications = async () => {
         try {
             const response = await axios.get(`${API_BASE_URL}/api/applications`);
+            console.log('this', response.data)
             let data: AppItem[] = response.data;
             // Hide APP-1073 until roster intake completed
             if (!rosterCompleted) {
@@ -142,7 +143,7 @@ export default function ApplicationsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>App ID</TableHead>
+                                <TableHead>Provider ID</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>% Complete</TableHead>
@@ -155,10 +156,10 @@ export default function ApplicationsPage() {
                         <TableBody>
                             {applications.map((app) => (
                                 <TableRow key={app.id} onClick={() => handleRowClick(app.id)} className="cursor-pointer">
-                                    <TableCell className="font-medium">{app.id}</TableCell>
+                                    <TableCell className="font-medium">{app.providerId}</TableCell>
                                     <TableCell>{app.name}</TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariant(app.status)}>{app.status}</Badge>
+                                        <Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">

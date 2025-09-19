@@ -1,10 +1,10 @@
 'use client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { barChartData } from '@/lib/mock-data';
+// import { barChartData } from '@/lib/mock-data';
 
 
-export function TimeToCredentialBarChart() {
+export function TimeToCredentialBarChart({ barChartData }) {
   return (
     <Card>
       <CardHeader>
