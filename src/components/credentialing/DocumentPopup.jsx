@@ -14,10 +14,21 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
-const DocumentPopup = ({filePath, showDocument, setShowDocument }) => {
-    const getFileType = (path) => {
+const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
+  const getFileType = (path) => {
     const ext = path.split(".").pop()?.toLowerCase();
     return ext;
+  };
+
+  const handleDownload = () => {
+    if (!filePath) return;
+    const link = document.createElement('a');
+    link.href = filePath;
+    const name = filePath.split('/').pop() || 'document';
+    link.setAttribute('download', name);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const renderContent = () => {
@@ -49,18 +60,33 @@ const DocumentPopup = ({filePath, showDocument, setShowDocument }) => {
 
     return <p>Cannot preview this file type</p>;
   };
-    return (
-        <Modal
-            open={showDocument}
-            onClose={()=>{setShowDocument(false)}}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-            >
-            <Box sx={style}>
-                {renderContent()}
-            </Box>
-        </Modal>
-    )
+  return (
+    <Modal
+      open={showDocument}
+      onClose={() => { setShowDocument(false) }}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box sx={{ ...style, position: 'relative' }}>
+        {/* Controls */}
+        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 8, zIndex: 2 }}>
+          <button
+            onClick={handleDownload}
+            className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+          >
+            Download
+          </button>
+          <button
+            onClick={() => setShowDocument(false)}
+            className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+        {renderContent()}
+      </Box>
+    </Modal>
+  )
 }
 
 export default DocumentPopup

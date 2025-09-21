@@ -5,7 +5,57 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
 
 
     if (!data) return <p className="text-sm text-muted-foreground">No OCR data available</p>;
-    if (type === "dl") {
+    const t = (type || '').toLowerCase();
+    if (t === "dea") {
+        return (
+            <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+                <p><strong>Registrant Name:</strong> {data["Registrant Name"] || 'N/A'}</p>
+                <p><strong>DEA Registration Number:</strong> {data["DEA Registration Number"] || 'N/A'}</p>
+                <p><strong>Business Address:</strong> {data["Business Address"] || 'N/A'}</p>
+                <p><strong>Controlled Substance Schedules:</strong> {data["Controlled Substance Schedules"] || 'N/A'}</p>
+                <p><strong>Business Activity:</strong> {data["Business Activity"] || 'N/A'}</p>
+                <p><strong>Issue Date:</strong> {data["Issue Date"] || 'N/A'}</p>
+                <p><strong>Expiration Date:</strong> {data["Expiration Date"] || 'N/A'}</p>
+            </div>
+        );
+    }
+    if (t === "sanctions") {
+        return (
+            <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+                <p><strong>Sanction Status:</strong> {data["Sanction Status"] || 'N/A'}</p>
+                <p><strong>Sanction Details:</strong> {data["Sanction Details"] || 'N/A'}</p>
+                <p><strong>Comment 1:</strong> {data["Comment 1"] || 'N/A'}</p>
+                <p><strong>Comment 2:</strong> {data["Comment 2"] || 'N/A'}</p>
+                <p><strong>NPI:</strong> {data["NPI"] || 'N/A'}</p>
+                <p><strong>Provider Name:</strong> {data["Provider Name"] || 'N/A'}</p>
+            </div>
+        );
+    }
+    if (t === "cv") {
+        return (
+            <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+                <p><strong>Provider Name:</strong> {data["Provider Name"] || 'N/A'}</p>
+                <p><strong>Medical Education:</strong> {data["Medical Education"] || 'N/A'}</p>
+                <p><strong>Postgraduate Training:</strong> {data["Postgraduate Training"] || 'N/A'}</p>
+                <p><strong>Board Certification:</strong> {data["Board Certification"] || 'N/A'}</p>
+                <p><strong>Most Recent Work History:</strong> {data["Most Recent Work History"] || 'N/A'}</p>
+            </div>
+        );
+    }
+    if (t === "malpractice_insurance") {
+        return (
+            <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+                <p><strong>Insured Name:</strong> {data["Insured Name"] || 'N/A'}</p>
+                <p><strong>Insurer Name:</strong> {data["Insurer Name"] || 'N/A'}</p>
+                <p><strong>Policy Number:</strong> {data["Policy Number"] || 'N/A'}</p>
+                <p><strong>Policy Effective Date:</strong> {data["Policy Effective Date"] || 'N/A'}</p>
+                <p><strong>Policy Expiration Date:</strong> {data["Policy Expiration Date"] || 'N/A'}</p>
+                <p><strong>Liability Limit (Per Claim):</strong> {data["Liability Limit (Per Claim)"] || 'N/A'}</p>
+                <p><strong>Liability Limit (Aggregate):</strong> {data["Liability Limit (Aggregate)"] || 'N/A'}</p>
+            </div>
+        );
+    }
+    if (t === "dl") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>First Name:</strong> {data.fn || 'N/A'} <Badge variant="outline" className="ml-2">{(data.fn_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
@@ -23,7 +73,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
         );
     }
 
-    if (type === "npi") {
+    if (t === "npi") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>NPI:</strong> {data.npi || 'N/A'} <Badge variant="outline" className="ml-1">{(data.npi_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
@@ -34,7 +84,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
         );
     }
 
-    if (type === "passport") {
+    if (t === "passport") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>First Name:</strong> {data.fn || 'N/A'} <Badge variant="outline" className="ml-2">{(data.fn_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
@@ -44,7 +94,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
         );
     }
 
-    if (type === "degree") {
+    if (t === "degree") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>License Type</strong> {data.type || 'N/A'} <Badge variant="outline" className="ml-2">{(data.type_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
@@ -55,7 +105,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
     }
 
     // ABMS Board Certification mock (board_certification)
-    if (type === "board_certification") {
+    if (t === "board_certification") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>abmsuid:</strong> 813890 <Badge variant="outline" className="ml-2">99%</Badge></p>
@@ -77,7 +127,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
     }
 
     // License Board mock (license_board)
-    if (type === "license_board") {
+    if (t === "license_board") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>License:</strong> A 64753 <Badge variant="outline" className="ml-2">97%</Badge></p>
@@ -101,7 +151,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
     }
 
     // Medical Training Certificate mock
-    if (type === "MEDICAL_TRAINING_CERTIFICATE") {
+    if (t === "medical_training_certificate") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>University / Issuer:</strong> University of California <Badge variant="outline" className="ml-2">95%</Badge></p>

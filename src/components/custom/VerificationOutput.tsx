@@ -92,7 +92,8 @@ export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; 
 
 const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolean }) => {
   const [expanded, setExpanded] = useState(false);
-  const match = data?.match;
+  const rawMatch = data?.match;
+  const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
   const reason = data?.reason || "No reason provided.";
   const isGreen = forceGreen || match;
   return (
