@@ -133,6 +133,30 @@ export default function CredentialingWorkflowPage() {
         return mapping[k] || key?.toLowerCase();
     };
 
+    // Human-friendly label for file types (UI display)
+    const formatFileTypeLabel = (ft: string): string => {
+        const key = (ft || '').toLowerCase();
+        const labels: Record<string, string> = {
+            'board_certification': 'Board Certification',
+            'license_board': 'License Board',
+            'medical_training_certificate': 'Medical Training Certificate',
+            'cv': 'CV',
+            'npi': 'NPI',
+            'dea': 'DEA',
+            'sanctions': 'Sanctions',
+            'malpractice_insurance': 'Malpractice Insurance',
+            'hospital_privileges': 'Hospital Privileges',
+            'coi': 'COI',
+            'degree': 'Degree',
+            'work-history': 'Work History',
+            'dl': 'Driver License',
+            'ml': 'Medical License',
+            'malpractice': 'Malpractice',
+            'other': 'Other',
+        };
+        return labels[key] || ft?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    };
+
     // Transform the new API response into an array of document objects consumed by the UI
     const normalizeFilesToDocuments = (files: any): any[] => {
         if (!files) return [];
@@ -167,7 +191,7 @@ export default function CredentialingWorkflowPage() {
                 ocrData: f?.ocrData || f?.ocr || {},
                 pdfMatch: pdfMatchNormalized,
                 comments: f?.comments || [],
-                verificationDetails: f?.verificationDetails || f?.verification_details || null,
+                verificationDetails: Object.keys(verificationObj || {}).length ? verificationObj : (f?.verificationDetails || f?.verification_details || null),
             };
         });
     };
@@ -329,42 +353,36 @@ export default function CredentialingWorkflowPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Documents
-                        <Chip
-                            label='Total Documents: 9'
-                            color='default'
-                            size="small"
-                            variant="outlined"
-                            sx={{ ml: 2 }}
-                        />
-                        <Chip
-                            label='Verified Documents: 4'
-                            color='primary'
-                            size="small"
-                            variant="outlined"
-                            sx={{ ml: 2 }}
-                        />
-                        <Chip
-                            label='In Progress: 5'
-                            color='default'
-                            size="small"
-                            variant="outlined"
-                            sx={{ ml: 2 }}
-                        />
-                        {/* <Chip
-                        label='Pending Documents: 5'
-                        color='default'
-                        size="small"
-                        variant="outlined"
-                        sx={{ ml: 2 }}
-                    /> */}
-                        {/* <Chip
-                        label='Flagged Documents: 4'
-                        color='error'
-                        size="small"
-                        variant="outlined"
-                        sx={{ ml: 2 }}
-                    /> */}
-
+                        {(() => {
+                            const total = documents.length;
+                            const verified = documents.filter(d => (d.status || '').toLowerCase() === 'verified' || d.progress === 100).length;
+                            const inProgress = documents.filter(d => (d.status || '').toLowerCase() === 'in progress' || ((d.status || '').toLowerCase() === 'pending' && d.progress > 0 && d.progress < 100) || (!d.status && d.progress > 0 && d.progress < 100)).length;
+                            return (
+                                <>
+                                    <Chip
+                                        label={`Total Documents: ${total}`}
+                                        color='default'
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{ ml: 2 }}
+                                    />
+                                    <Chip
+                                        label={`Verified Documents: ${verified}`}
+                                        color='primary'
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{ ml: 2 }}
+                                    />
+                                    <Chip
+                                        label={`In Progress: ${inProgress}`}
+                                        color='default'
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{ ml: 2 }}
+                                    />
+                                </>
+                            );
+                        })()}
                     </CardTitle>
                     <CardDescription>Select a document to view its verification progress.</CardDescription>
                 </CardHeader>
@@ -397,7 +415,7 @@ export default function CredentialingWorkflowPage() {
                                     >
                                         <div className="flex items-center gap-3">
                                             <Icon className={`h-6 w-6 ${color}`} />
-                                            <span className="text-sm font-semibold">{doc.fileType.toUpperCase() === 'MEDICAL_TRAINING_CERTIFICATE' ? 'MEDICAL_TRAINING_CERT' : doc.fileType.toUpperCase()}</span>
+                                            <span className="text-sm font-semibold">{formatFileTypeLabel(doc.fileType)}</span>
                                         </div>
                                         <div className="w-full mt-2">
                                             <Progress value={doc.progress} />
@@ -415,11 +433,11 @@ export default function CredentialingWorkflowPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Verification Progress for: <span className="text-primary">{selectedDocument.fileType.toUpperCase()}</span></CardTitle>
+                    <CardTitle>Verification Progress for: <span className="text-primary">{formatFileTypeLabel(selectedDocument.fileType)}</span></CardTitle>
                     <CardDescription>Details from each stage of the verification pipeline.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className={isNpi ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}>
+                    <div className={isNpi ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}>
                         {!isNpi && (
                             <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                                 <div>
@@ -451,29 +469,31 @@ export default function CredentialingWorkflowPage() {
                             <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
                         )}
 
-                        <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                            <div>
+                        {!isNpi && (
+                            <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                                 <div>
-                                    <div className="flex items-center gap-2 font-semibold text-lg">
-                                        <Search className="h-5 w-5 text-primary" />
-                                        <h4>OCR/LLM Output</h4>
-                                    </div>
-                                    <div className="max-h-96 overflow-auto pr-2">
-                                        <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} />
+                                    <div>
+                                        <div className="flex items-center gap-2 font-semibold text-lg">
+                                            <Search className="h-5 w-5 text-primary" />
+                                            <h4>OCR/LLM Output</h4>
+                                        </div>
+                                        <div className="max-h-96 overflow-auto pr-2">
+                                            <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType}/> */}
-                            <div className='space-y-2'>
-                                <div className='flex justify-between gap-2'>
-                                    <Button variant='outline' onClick={() => { router.push(`/credentialing/${id}/verify`) }} className='flex-1 h-9' >Modify</Button>
-                                    <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
+                                {/* <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType}/> */}
+                                <div className='space-y-2'>
+                                    <div className='flex justify-between gap-2'>
+                                        <Button variant='outline' onClick={() => { router.push(`/credentialing/${id}/verify`) }} className='flex-1 h-9' >Modify</Button>
+                                        <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
 
+                                    </div>
+                                    <Button className='w-full h-9'>Approve</Button>
                                 </div>
-                                <Button className='w-full h-9'>Approve</Button>
                             </div>
-                        </div>
+                        )}
 
                         <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                             <div className='space-y-2'>
@@ -482,7 +502,7 @@ export default function CredentialingWorkflowPage() {
                                     <h4>Verification</h4>
                                 </div>
                                 <div className="max-h-96 overflow-auto pr-2">
-                                    <VerificationOutput pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} />
+                                    <VerificationOutput pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} verificationDetails={selectedDocument?.verificationDetails || {}} />
                                 </div>
                             </div>
 

@@ -2,7 +2,7 @@ import { oc } from "date-fns/locale";
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { useState } from "react";
 
-export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; ocrData: any, type: string; }) => {
+export const VerificationOutput = ({ pdfData, ocrData, type, verificationDetails, }: { pdfData: any; ocrData: any; type: string; verificationDetails?: any; }) => {
   if (!pdfData) {
     return (
       <div className="text-sm text-muted-foreground p-3 rounded-md bg-muted">
@@ -88,6 +88,28 @@ export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; 
       </div>
     );
   }
+
+  if (type === "DEA") {
+    const status = verificationDetails?.dea_verification;
+    return (
+      <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+        <PdfMatch data={pdfData} />
+        {status && (
+          <div className="flex items-start gap-2 text-green-600">
+            <CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <span>DEA Verification: {String(status)}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default: show PDF match block for other types
+  return (
+    <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+      <PdfMatch data={pdfData} />
+    </div>
+  );
 };
 
 const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolean }) => {

@@ -21,14 +21,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-    switch (status) {
-        case 'COMPLETED': return 'default';
-        case 'Pending Review': return 'secondary';
-        case 'Needs Further Review': return 'destructive';
-        case 'Sanctioned': return 'destructive';
-        case 'IN_PROGRESS':
-        case 'Closed':
-        default: return 'outline';
+    const s = (status || '').trim().toLowerCase();
+    switch (s) {
+        case 'completed':
+            return 'default';
+        case 'pending review':
+            return 'secondary';
+        case 'needs further review':
+            return 'destructive';
+        case 'sanctioned':
+            return 'destructive';
+        case 'in_progress':
+        case 'in progress':
+        case 'closed':
+            return 'outline';
+        default:
+            return s.includes('sanction') ? 'destructive' : 'outline';
     }
 }
 
