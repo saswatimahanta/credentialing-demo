@@ -64,6 +64,14 @@ import {
     CardDescription as CnCardDescription
 } from "@/components/ui/card"
 import { Button as CnButton } from '@/components/ui/button';
+import {
+    Select as CnSelect,
+    SelectContent as CnSelectContent,
+    SelectItem as CnSelectItem,
+    SelectTrigger as CnSelectTrigger,
+    SelectValue as CnSelectValue
+} from '@/components/ui/select';
+
 const submittedDocuments = [
     { name: 'CV/Resume', type: 'PDF', size: '2.3 MB', status: 'complete' },
     { name: 'Medical License', type: 'PDF', size: '1.1 MB', status: 'complete' },
@@ -83,7 +91,6 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
     const [verificationResults, setVerificationResults] = useState({});
     const [loading, setLoading] = useState(false);
 
-    console.log('open', open)
     useEffect(() => {
         if (provider) {
             // Get the most up-to-date provider data from database
@@ -329,39 +336,39 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                     <CnCardContent>
                                         <Grid container spacing={2}>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Full Name
-                                                </Typography>
-                                                <Typography variant="body1">{provider.name}</Typography>
+                                                </p>
+                                                <p>{provider.name}</p>
                                             </Grid>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Provider ID
-                                                </Typography>
-                                                <Typography variant="body1">{provider.id}</Typography>
+                                                </p>
+                                                <p>{provider.id}</p>
                                             </Grid>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Specialty
-                                                </Typography>
-                                                <Typography variant="body1">{provider.specialty}</Typography>
+                                                </p>
+                                                <p>{provider.specialty}</p>
                                             </Grid>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Market
-                                                </Typography>
-                                                <Typography variant="body1">{provider.market}</Typography>
+                                                </p>
+                                                <p>{provider.market}</p>
                                             </Grid>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Work Experience
-                                                </Typography>
-                                                <Typography variant="body1">{provider.workExperience} years</Typography>
+                                                </p>
+                                                <p>{provider.workExperience} years</p>
                                             </Grid>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <p className='text-[13px] text-gray-600'>
                                                     Network Impact
-                                                </Typography>
+                                                </p>
                                                 <Chip
                                                     label={provider.networkImpact}
                                                     color={
@@ -381,50 +388,55 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                     </CnCardHeader>
                                     <CnCardContent>
                                         <Grid container spacing={2}>
-                                            <Grid item xs={12}>
-                                                <FormControl flex={1}>
-                                                    <InputLabel>Assigned Analyst</InputLabel>
-                                                    <Select
-                                                        value={assignedAnalyst}
-                                                        label="Assigned Analyst"
-                                                        onChange={(e) => setAssignedAnalyst(e.target.value)}
-                                                        disabled={userRole === 'committee'}
-                                                    >
-                                                        <MenuItem value="John Smith">John Smith</MenuItem>
-                                                        <MenuItem value="Jane Doe">Jane Doe</MenuItem>
-                                                        <MenuItem value="Mike Johnson">Mike Johnson</MenuItem>
-                                                        <MenuItem value="Sarah Wilson">Sarah Wilson</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12}>
-                                                <FormControl fullWidth>
-                                                    <InputLabel>Status</InputLabel>
-                                                    <Select
-                                                        value={status}
-                                                        label="Status"
-                                                        onChange={(e) => setStatus(e.target.value)}
-                                                        disabled={userRole === 'committee'}
-                                                    >
-                                                        <MenuItem value="Initiated">Initiated</MenuItem>
-                                                        <MenuItem value="In Progress">In Progress</MenuItem>
-                                                        <MenuItem value="Committee Review">Committee Review</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12}>
-                                                <TextField
-                                                    fullWidth
-                                                    multiline
-                                                    rows={4}
-                                                    label="Analyst Notes"
-                                                    value={notes}
-                                                    onChange={(e) => setNotes(e.target.value)}
-                                                    placeholder="Add notes about this application..."
+                                            {/* First row: 2 equal-width items */}
+                                            <Grid item xs={12} md={6}>
+                                                <FormControl sx={{minWidth: 200}}>
+                                                <InputLabel>Assigned Analyst</InputLabel>
+                                                <Select
+                                                    value={assignedAnalyst || 'John Smith'}
+                                                    label="Assigned Analyst"
+                                                    onChange={(e) => setAssignedAnalyst(e.target.value)}
                                                     disabled={userRole === 'committee'}
+                                                >
+                                                    <MenuItem value="John Smith">John Smith</MenuItem>
+                                                    <MenuItem value="Jane Doe">Jane Doe</MenuItem>
+                                                    <MenuItem value="Mike Johnson">Mike Johnson</MenuItem>
+                                                    <MenuItem value="Sarah Wilson">Sarah Wilson</MenuItem>
+                                                </Select>
+                                                </FormControl>
+                                            </Grid>
+
+                                            <Grid item xs={12} md={6}>
+                                                <FormControl sx={{minWidth: 200}}>
+                                                <InputLabel>Status</InputLabel>
+                                                <Select
+                                                    value={status}
+                                                    label="Status"
+                                                    onChange={(e) => setStatus(e.target.value)}
+                                                    disabled={userRole === 'committee'}
+                                                >
+                                                    <MenuItem value="Initiated">Initiated</MenuItem>
+                                                    <MenuItem value="In Progress">In Progress</MenuItem>
+                                                    <MenuItem value="Committee Review">Committee Review</MenuItem>
+                                                </Select>
+                                                </FormControl>
+                                            </Grid>
+
+                                            {/* Second row: textarea takes full width */}
+                                            <Grid item xs={12} flex={1}>
+                                                <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={4}
+                                                label="Analyst Notes"
+                                                value={notes}
+                                                onChange={(e) => setNotes(e.target.value)}
+                                                placeholder="Add notes about this application..."
+                                                disabled={userRole === 'committee'}
                                                 />
                                             </Grid>
-                                        </Grid>
+                                            </Grid>
+
                                     </CnCardContent>
                                 </CnCard>
                             </Grid>
@@ -437,8 +449,8 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                     <CnCardContent>
                                         <Box sx={{ mb: 3 }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                <Typography variant="body2">Checklist Completion</Typography>
-                                                <Typography variant="body2">{completionPercentage}%</Typography>
+                                                <p className='text-[14px] text-gray-500' variant="body2">Checklist Completion</p>
+                                                <p>{completionPercentage}%</p>
                                             </Box>
                                             <LinearProgress
                                                 variant="determinate"
@@ -447,22 +459,22 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                             />
                                         </Box>
 
-                                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        <p className='text-[14px] text-gray-500'>
                                             Submission Date
-                                        </Typography>
-                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                        </p>
+                                        <p className='mb-4'>
                                             {new Date(provider.submissionDate).toLocaleDateString()}
-                                        </Typography>
+                                        </p>
 
-                                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        <p className='text-[14px] text-gray-500'>
                                             Last Updated
-                                        </Typography>
-                                        <Typography variant="body1">
+                                        </p>
+                                        <p>
                                             {provider.lastUpdated ?
                                                 new Date(provider.lastUpdated).toLocaleDateString() :
                                                 'Not updated'
                                             }
-                                        </Typography>
+                                        </p>
                                     </CnCardContent>
                                 </CnCard>
 
@@ -656,13 +668,12 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                                             </Alert>
                                                         )}
                                                     </Box>
-                                                    <Button
-                                                        size="small"
-                                                        sx={{ mt: 1 }}
-                                                        variant="outlined"
+                                                    <CnButton
+                                                        className='mt-2'
+                                                        variant="outline"
                                                     >
                                                         Re-verify
-                                                    </Button>
+                                                    </CnButton>
                                                 </Box>
                                             </CardContent>
                                         </Card>
