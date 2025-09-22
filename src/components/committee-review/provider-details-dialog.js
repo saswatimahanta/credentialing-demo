@@ -304,7 +304,7 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                     <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
                         <Tab label="Overview" />
                         <Tab label="Documents" />
-                        <Tab label="Checklist" />
+                        {/* <Tab label="Checklist" /> */}
                         <Tab label="Verification" />
                         <Tab label="History" />
                     </Tabs>

@@ -548,9 +548,9 @@ const CommitteeReview = () => {
                     <MenuItem onClick={() => handleViewDetails(menuProvider)}>
                         View Details
                     </MenuItem>
-                    <MenuItem onClick={() => handleViewChecklist(menuProvider)}>
+                    {/* <MenuItem onClick={() => handleViewChecklist(menuProvider)}>
                         View Checklist
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem onClick={() => handleGenerateReport(menuProvider)}>
                         Generate Report
                     </MenuItem>
