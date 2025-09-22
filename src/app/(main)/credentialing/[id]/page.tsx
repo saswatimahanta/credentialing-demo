@@ -72,12 +72,13 @@ export default function CredentialingWorkflowPage() {
     const [documentUploadType, setDocumentUploadType] = useState('userUploaded')
     const [showDocument, setShowDocument] = useState(false)
     const [providerName, setProviderName] = useState('')
-    const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE'
+    const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' || selectedDocument?.fileType === 'malpractice_insurance' || selectedDocument?.fileType ==='DEA'
     const isNpi = (selectedDocument?.fileType || '').toLowerCase() === 'npi';
 
 
     const documentType = selectedDocument?.fileType?.split('/')?.[0] || '';
     const imagePath = `/images/${documentType}.jpg`;
+    console.log(imagePath)
     const routeParams = useParams();
     const id = (routeParams as any)?.id as string;
     const router = useRouter();
@@ -455,7 +456,7 @@ export default function CredentialingWorkflowPage() {
                                     />}
 
                                     <p className="text-sm text-slate-600">
-                                        <span className="font-medium">File Name:</span> {selectedDocument?.filename || '—'}
+                                        <span className="font-medium">File Name:</span> {`${selectedDocument?.fileType}.jpg` || '—'}
                                     </p>
                                 </div>
                                 <div className='flex gap-2'>
