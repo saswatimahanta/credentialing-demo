@@ -40,26 +40,44 @@ const CommitteeReview = () => {
     const [detailsDocsUser, setDetailsDocsUser] = useState<any[]>([]);
     const [detailsDocsPsv, setDetailsDocsPsv] = useState<any[]>([]);
     const [detailsError, setDetailsError] = useState<string | null>(null);
-    const [filters, setFilters] = useState({
-        specialty: "",
-        market: "",
-        status: "",
-        analyst: "",
-        networkImpact: "",
-    });
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+    const [previewTitle, setPreviewTitle] = useState<string | null>(null);
+    const [previewType, setPreviewType] = useState<string | null>(null);
+    // Filters modeled like Applications screen
+    const defaultFilters = {
+        providerId: '',
+        name: '',
+        status: 'All',
+        market: 'All',
+        source: 'All',
+        assignee: '',
+        progressMin: '',
+        progressMax: ''
+    } as const;
+    const [filters, setFilters] = useState({ ...defaultFilters });
+    const [draftFilters, setDraftFilters] = useState({ ...defaultFilters });
     const [selected, setSelected] = useState<number[]>([]);
 
-    const handleFilterChange = (key: string, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleDraftChange = (key: keyof typeof defaultFilters, value: string) => {
+        setDraftFilters(prev => ({ ...prev, [key]: value }));
     };
 
-    const filteredProviders = providers.filter((p: any) =>
-        (filters.specialty === "" || p.specialty.toLowerCase().includes(filters.specialty.toLowerCase())) &&
-        (filters.market === "" || p.market.toLowerCase().includes(filters.market.toLowerCase())) &&
-        (filters.status === "" || p.status.toLowerCase().includes(filters.status.toLowerCase())) &&
-        (filters.analyst === "" || p.assignedAnalyst.toLowerCase().includes(filters.analyst.toLowerCase())) &&
-        (filters.networkImpact === "" || p.networkImpact.toLowerCase().includes(filters.networkImpact.toLowerCase()))
-    );
+    const applyFilters = () => setFilters({ ...draftFilters });
+    const clearFilters = () => { setDraftFilters({ ...defaultFilters }); setFilters({ ...defaultFilters }); };
+
+    const filteredProviders = providers.filter((p: any) => {
+        const pidOk = !filters.providerId || String(p.id).toLowerCase().includes(filters.providerId.toLowerCase());
+        const nameOk = !filters.name || String(p.name || '').toLowerCase().includes(filters.name.toLowerCase());
+        const statusOk = filters.status === 'All' || (String(p.status || '').toLowerCase() === String(filters.status).toLowerCase());
+        const marketOk = filters.market === 'All' || String(p.market || '').toLowerCase() === String(filters.market).toLowerCase();
+        const sourceOk = filters.source === 'All' || String(p.source || '').toLowerCase() === String(filters.source).toLowerCase();
+        const assigneeOk = !filters.assignee || String(p.assignedAnalyst || '').toLowerCase().includes(filters.assignee.toLowerCase());
+        const prog = typeof p.progress === 'number' ? p.progress : (p.progress ? Number(p.progress) : 0);
+        const minOk = !filters.progressMin || (!Number.isNaN(Number(filters.progressMin)) && prog >= Number(filters.progressMin));
+        const maxOk = !filters.progressMax || (!Number.isNaN(Number(filters.progressMax)) && prog <= Number(filters.progressMax));
+        return pidOk && nameOk && statusOk && marketOk && sourceOk && assigneeOk && minOk && maxOk;
+    });
 
 
     useEffect(() => {
@@ -153,13 +171,14 @@ const CommitteeReview = () => {
                 market: p.market || p.location || '—',
                 status: committeeStatusToLabel(p.committeeStatus) || p.status || 'Under Review',
                 assignedAnalyst: p.assignedAnalyst || p.assignee || 'Unassigned',
+                source: p.source || '—',
                 submissionDate:
                     p.submissionDate
                     || (p.create_dt ? String(p.create_dt).split('T')[0]
                         : (p.submitted_at ? String(p.submitted_at).split('T')[0]
                             : new Date().toISOString().split('T')[0])),
                 networkImpact: p.networkImpact || deriveNetworkImpact(p.specialty),
-                progress: typeof p.progress === 'number' ? p.progress : undefined,
+                progress: typeof p.progress === 'number' ? p.progress : (p.progress ? Number(p.progress) : 0),
                 lastUpdated: p.last_updt_dt ? String(p.last_updt_dt).split('T')[0] : undefined,
             }));
             setProviders(mapped);
@@ -197,6 +216,74 @@ const CommitteeReview = () => {
         setDetailsError(null);
         fetchDetails(provider).catch(() => { });
         handleMenuClose();
+    };
+
+    // Image helpers: alias known fileTypes to existing assets and provide fallbacks
+    const imageAliasFor = (fileType: string) => {
+        const key = (fileType || '').split('/')[0];
+        const k = key.toLowerCase();
+        const alias: Record<string, string> = {
+            // explicit mappings to known assets in /public/images
+            'cv': 'CV',
+            'npi': 'npi',
+            'dea': 'dea',
+            'degree': 'degree',
+            'dl': 'dl',
+            'license_board': 'license_board',
+            'board_certification': 'board_certification',
+            'medical_training_certificate': 'MEDICAL_TRAINING_CERTIFICATE',
+            // malpractice insurance not present; use certificate-of-insurance image
+            'malpractice_insurance': 'coi',
+            'malpractice': 'coi',
+            'coi': 'coi',
+        };
+        return alias[k] || key;
+    };
+
+    const imageCandidates = (fileType: string): string[] => {
+        const base = imageAliasFor(fileType);
+        const unique = Array.from(new Set([
+            `/images/${base}.jpg`,
+            `/images/${String(base).toLowerCase()}.jpg`,
+            `/images/${base}.png`,
+            `/images/${String(base).toLowerCase()}.png`,
+        ]));
+        return unique;
+    };
+
+    const imagePathFor = (fileType: string) => {
+        return imageCandidates(fileType)[0];
+    };
+
+    const handleImageError = (img: HTMLImageElement, fileType: string) => {
+        const attempts = imageCandidates(fileType);
+        const step = Number(img.dataset.step || '0');
+        if (step < attempts.length - 1) {
+            img.dataset.step = String(step + 1);
+            img.src = attempts[step + 1];
+        } else {
+            // hide if no candidate works
+            img.style.display = 'none';
+        }
+    };
+
+    const openPreview = (doc: any) => {
+        const src = imagePathFor(doc.fileType);
+        setPreviewSrc(src);
+        setPreviewTitle(doc.label || doc.fileType);
+        setPreviewType(doc.fileType || null);
+        setPreviewOpen(true);
+    };
+
+    const downloadPreview = () => {
+        if (!previewSrc) return;
+        const a = document.createElement('a');
+        a.href = previewSrc;
+        const ext = (() => { const m = previewSrc.split('?')[0].split('#')[0].match(/\.([a-zA-Z0-9]+)$/); return m ? m[1] : 'jpg'; })();
+        a.download = (previewTitle || 'document').replace(/\s+/g, '_') + `.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     // Utilities to fetch documents for details dialog
@@ -492,12 +579,80 @@ const CommitteeReview = () => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                        <Input placeholder="Specialty" value={filters.specialty} onChange={(e) => handleFilterChange('specialty', e.target.value)} />
-                        <Input placeholder="Market" value={filters.market} onChange={(e) => handleFilterChange('market', e.target.value)} />
-                        <Input placeholder="Status" value={filters.status} onChange={(e) => handleFilterChange('status', e.target.value)} />
-                        <Input placeholder="Analyst" value={filters.analyst} onChange={(e) => handleFilterChange('analyst', e.target.value)} />
-                        <Input placeholder="Network Impact" value={filters.networkImpact} onChange={(e) => handleFilterChange('networkImpact', e.target.value)} />
+                    <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline">Filters</Button>
+                        <Button variant="outline">Export</Button>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label className="text-sm text-muted-foreground">Provider ID</label>
+                                <Input placeholder="e.g., 1001" value={draftFilters.providerId} onChange={(e) => handleDraftChange('providerId', e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Name</label>
+                                <Input placeholder="Search name" value={draftFilters.name} onChange={(e) => handleDraftChange('name', e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Status</label>
+                                <Select value={draftFilters.status} onValueChange={(v) => handleDraftChange('status', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">All</SelectItem>
+                                        <SelectItem value="Under Review">Under Review</SelectItem>
+                                        <SelectItem value="Committee Review">Committee Review</SelectItem>
+                                        <SelectItem value="In Progress">In Progress</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Denied">Denied</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Market</label>
+                                <Select value={draftFilters.market} onValueChange={(v) => handleDraftChange('market', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">All</SelectItem>
+                                        <SelectItem value="CA">CA</SelectItem>
+                                        <SelectItem value="NY">NY</SelectItem>
+                                        <SelectItem value="TX">TX</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Source</label>
+                                <Select value={draftFilters.source} onValueChange={(v) => handleDraftChange('source', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">All</SelectItem>
+                                        <SelectItem value="Manual Entry">Manual Entry</SelectItem>
+                                        <SelectItem value="PSV Fetched">PSV Fetched</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Assignee</label>
+                                <Input placeholder="Type a name" value={draftFilters.assignee} onChange={(e) => handleDraftChange('assignee', e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Progress min</label>
+                                <Input inputMode="numeric" placeholder="0" value={draftFilters.progressMin} onChange={(e) => handleDraftChange('progressMin', e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted-foreground">Progress max</label>
+                                <Input inputMode="numeric" placeholder="100" value={draftFilters.progressMax} onChange={(e) => handleDraftChange('progressMax', e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="mt-4 flex items-center justify-end gap-2">
+                            <Button variant="outline" onClick={clearFilters}>Clear</Button>
+                            <Button onClick={applyFilters}>Apply</Button>
+                        </div>
                     </div>
                     <div className="rounded-md border">
                         <div className="w-full overflow-x-auto">
@@ -595,7 +750,7 @@ const CommitteeReview = () => {
                             <DialogHeader>
                                 <DialogTitle>{selectedProvider?.name}</DialogTitle>
                                 <DialogDescription>
-                                    {selectedProvider?.id} • {selectedProvider?.specialty} {selectedProvider?.market ? `• ${selectedProvider?.market}` : ''}
+                                    {selectedProvider?.specialty} {selectedProvider?.market ? `• ${selectedProvider?.market}` : ''}
                                 </DialogDescription>
                             </DialogHeader>
                             <ScrollArea className="h-[65vh] pr-2">
@@ -698,10 +853,19 @@ const CommitteeReview = () => {
                                                                             </Badge>
                                                                         </div>
                                                                     </CardHeader>
-                                                                    <CardContent className="flex items-center justify-end gap-2">
-                                                                        <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
-                                                                            <Download className="h-4 w-4" />
-                                                                        </Button>
+                                                                    <CardContent className="space-y-2">
+                                                                        <img src={imagePathFor(doc.fileType)} alt={doc.label}
+                                                                            className="h-24 w-full rounded border object-cover cursor-pointer"
+                                                                            onClick={() => openPreview(doc)}
+                                                                            onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)} />
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
+                                                                                <Eye className="h-4 w-4" />
+                                                                            </Button>
+                                                                            <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
+                                                                                <Download className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
                                                                     </CardContent>
                                                                 </Card>
                                                             ))}
@@ -725,10 +889,19 @@ const CommitteeReview = () => {
                                                                             </Badge>
                                                                         </div>
                                                                     </CardHeader>
-                                                                    <CardContent className="flex items-center justify-end gap-2">
-                                                                        <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
-                                                                            <Download className="h-4 w-4" />
-                                                                        </Button>
+                                                                    <CardContent className="space-y-2">
+                                                                        <img src={imagePathFor(doc.fileType)} alt={doc.label}
+                                                                            className="h-24 w-full rounded border object-cover cursor-pointer"
+                                                                            onClick={() => openPreview(doc)}
+                                                                            onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)} />
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
+                                                                                <Eye className="h-4 w-4" />
+                                                                            </Button>
+                                                                            <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
+                                                                                <Download className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
                                                                     </CardContent>
                                                                 </Card>
                                                             ))}
@@ -808,6 +981,29 @@ const CommitteeReview = () => {
                             </ScrollArea>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setDetailsOpen(false)}>Close</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Image Preview Dialog */}
+                    <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                        <DialogContent className="max-w-4xl">
+                            <DialogHeader>
+                                <DialogTitle>{previewTitle}</DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="max-h-[70vh] pr-2">
+                                {previewSrc ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={previewSrc} alt={String(previewTitle || '')} className="w-full rounded border" onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, String(previewType || ''))} />
+                                ) : (
+                                    <div className="text-sm text-muted-foreground">No preview available.</div>
+                                )}
+                            </ScrollArea>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setPreviewOpen(false)}>Close</Button>
+                                {previewSrc && (
+                                    <Button onClick={downloadPreview}><Download className="mr-2 h-4 w-4" /> Download</Button>
+                                )}
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

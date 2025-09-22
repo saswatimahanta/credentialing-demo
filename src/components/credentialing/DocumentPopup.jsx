@@ -15,6 +15,22 @@ const style = {
   p: 4,
 };
 const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
+  const nextCandidate = (current) => {
+    if (!current) return current;
+    const parts = current.split('/');
+    const name = parts.pop();
+    const [base, ext] = (name || '').split('.');
+    const lower = (s) => (s || '').toLowerCase();
+    const candidates = [
+      `${base}.${ext}`,
+      `${lower(base)}.${ext}`,
+      `${base}.png`,
+      `${lower(base)}.png`,
+    ];
+    const idx = candidates.findIndex((c) => c.toLowerCase() === `${lower(base)}.${lower(ext)}`);
+    const next = candidates[Math.min(idx + 1, candidates.length - 1)];
+    return [...parts, next].join('/');
+  };
   const getFileType = (path) => {
     const ext = path.split(".").pop()?.toLowerCase();
     return ext;
@@ -43,6 +59,13 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
           src={filePath}
           alt="document"
           className="w-full h-full object-contain"
+          onError={(e) => {
+            const img = e.currentTarget;
+            const tried = img.dataset.step ? parseInt(img.dataset.step, 10) : 0;
+            if (tried > 2) { img.style.display = 'none'; return; }
+            img.dataset.step = String(tried + 1);
+            img.src = nextCandidate(img.src);
+          }}
         />
       );
     }

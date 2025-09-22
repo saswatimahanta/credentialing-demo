@@ -72,13 +72,59 @@ export default function CredentialingWorkflowPage() {
     const [documentUploadType, setDocumentUploadType] = useState('userUploaded')
     const [showDocument, setShowDocument] = useState(false)
     const [providerName, setProviderName] = useState('')
-    const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE'
+    const imgSuccess = (() => {
+        const ft = (selectedDocument?.fileType || '').toLowerCase();
+        const set = new Set([
+            'cv',
+            'npi',
+            'board_certification',
+            'license_board',
+            'medical_training_certificate',
+            'dea',
+            'malpractice_insurance',
+            'malpractice',
+        ]);
+        return set.has(ft);
+    })();
     const isNpi = (selectedDocument?.fileType || '').toLowerCase() === 'npi';
     const isSanctions = (selectedDocument?.fileType || '').toLowerCase() === 'sanctions';
 
 
+    // Image helpers for thumbnails/preview
+    const imageAliasFor = (fileType?: string) => {
+        const key = (fileType || '').split('/')[0];
+        const k = key.toLowerCase();
+        const alias: Record<string, string> = {
+            cv: 'CV',
+            npi: 'npi',
+            dea: 'dea',
+            degree: 'degree',
+            dl: 'dl',
+            license_board: 'license_board',
+            board_certification: 'board_certification',
+            medical_training_certificate: 'MEDICAL_TRAINING_CERTIFICATE',
+            malpractice_insurance: 'coi', // map to certificate of insurance image
+            malpractice: 'coi',
+            coi: 'coi',
+        };
+        return alias[k] || key;
+    };
+
+    const imageCandidates = (fileType?: string): string[] => {
+        const base = imageAliasFor(fileType);
+        const unique = Array.from(new Set([
+            `/images/${base}.jpg`,
+            `/images/${String(base).toLowerCase()}.jpg`,
+            `/images/${base}.png`,
+            `/images/${String(base).toLowerCase()}.png`,
+        ]));
+        return unique;
+    };
+
+    const primaryImagePath = (fileType?: string) => imageCandidates(fileType)[0];
+
     const documentType = selectedDocument?.fileType?.split('/')?.[0] || '';
-    const imagePath = `/images/${documentType}.jpg`;
+    const imagePath = primaryImagePath(documentType);
     const routeParams = useParams();
     const id = (routeParams as any)?.id as string;
     const router = useRouter();
@@ -506,14 +552,24 @@ export default function CredentialingWorkflowPage() {
                                             <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
                                         )}
                                     </div>
-                                    {!isSanctions && imgSuccess && <Image
-                                        src={imagePath}
-                                        alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
-                                        width={600}
-                                        height={400}
-                                        className="rounded-md border aspect-[3/2] object-cover cursor-pointer" data-ai-hint="medical license document"
-                                    // onClick={() => handleDownload(selectedDocument.fileType)}
-                                    />}
+                                    {!isSanctions && imgSuccess && (
+                                        <Image
+                                            src={imagePath}
+                                            alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
+                                            width={600}
+                                            height={400}
+                                            className="rounded-md border aspect-[3/2] object-cover cursor-pointer"
+                                            data-ai-hint="medical license document"
+                                            onClick={handleDocumentPopup}
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    handleDocumentPopup();
+                                                }
+                                            }}
+                                        />
+                                    )}
 
                                     <p className="text-sm text-slate-600">
                                         {!isSanctions ? (
