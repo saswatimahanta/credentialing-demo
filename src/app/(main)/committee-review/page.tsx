@@ -456,8 +456,8 @@ const CommitteeReview = () => {
             const normalized = {
                 ...raw,
                 report_content: raw.report_content || raw.report || raw.reportContent || '',
-                provider_name: raw.provider_name || raw.providerName || selectedProvider?.name || 'Dr. Munther A Hijazin',
-                provider_id: raw.provider_id || raw.meta?.provider_id || 'APP-1073'
+                provider_name: raw.provider_name || raw.providerName || selectedProvider?.name || 'Provider',
+                provider_id: raw.provider_id || raw.meta?.provider_id || undefined
             };
             console.log('Report data (normalized):', normalized);
             setReportData(normalized);
@@ -505,7 +505,8 @@ const CommitteeReview = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `credentialing_report_${reportData.provider_id || 'unknown'}.md`;
+            const safeName = (reportData.provider_name || selectedProvider?.name || 'credentialing_report').replace(/[^a-z0-9]+/gi, '_');
+            link.download = `${safeName}.md`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -696,7 +697,6 @@ const CommitteeReview = () => {
                                                 <td className="px-3 py-2">
                                                     <div className="flex flex-col">
                                                         <span className="font-medium">{provider.name}</span>
-                                                        <span className="text-xs text-muted-foreground">ID: {provider.id}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-3 py-2">{provider.specialty}</td>
@@ -773,10 +773,7 @@ const CommitteeReview = () => {
                                                             <p className="text-muted-foreground">Full Name</p>
                                                             <p className="font-medium">{selectedProvider?.name}</p>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-muted-foreground">Provider ID</p>
-                                                            <p className="font-medium">{selectedProvider?.id}</p>
-                                                        </div>
+                                                        {/* Provider ID hidden per request */}
                                                         <div>
                                                             <p className="text-muted-foreground">Specialty</p>
                                                             <p className="font-medium">{selectedProvider?.specialty || '—'}</p>
@@ -843,32 +840,43 @@ const CommitteeReview = () => {
                                                             {detailsDocsUser.length === 0 && (
                                                                 <div className="text-sm text-muted-foreground">No provider-submitted documents.</div>
                                                             )}
-                                                            {detailsDocsUser.map((doc, idx) => (
-                                                                <Card key={`u-${doc.fileType}-${idx}`}>
-                                                                    <CardHeader className="pb-2">
-                                                                        <div className="flex items-center justify-between">
-                                                                            <CardTitle className="text-base">{doc.label}</CardTitle>
-                                                                            <Badge variant={/verified|complete/i.test(doc.status) ? 'default' : /pending|in progress/i.test(doc.status) ? 'secondary' : 'outline'}>
-                                                                                {doc.status || '—'}
-                                                                            </Badge>
-                                                                        </div>
-                                                                    </CardHeader>
-                                                                    <CardContent className="space-y-2">
-                                                                        <img src={imagePathFor(doc.fileType)} alt={doc.label}
-                                                                            className="h-24 w-full rounded border object-cover cursor-pointer"
-                                                                            onClick={() => openPreview(doc)}
-                                                                            onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)} />
-                                                                        <div className="flex items-center justify-end gap-2">
-                                                                            <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
-                                                                                <Eye className="h-4 w-4" />
-                                                                            </Button>
-                                                                            <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
-                                                                                <Download className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </div>
-                                                                    </CardContent>
-                                                                </Card>
-                                                            ))}
+                                                            {detailsDocsUser.map((doc, idx) => {
+                                                                const isNpi = String(doc?.fileType || '').toLowerCase() === 'npi';
+                                                                return (
+                                                                    <Card key={`u-${doc.fileType}-${idx}`}>
+                                                                        <CardHeader className="pb-2">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <CardTitle className="text-base">{doc.label}</CardTitle>
+                                                                                <Badge variant={/verified|complete/i.test(doc.status) ? 'default' : /pending|in progress/i.test(doc.status) ? 'secondary' : 'outline'}>
+                                                                                    {doc.status || '—'}
+                                                                                </Badge>
+                                                                            </div>
+                                                                        </CardHeader>
+                                                                        <CardContent className="space-y-2">
+                                                                            {!isNpi && (
+                                                                                // eslint-disable-next-line @next/next/no-img-element
+                                                                                <img
+                                                                                    src={imagePathFor(doc.fileType)}
+                                                                                    alt={doc.label}
+                                                                                    className="h-24 w-full rounded border object-cover cursor-pointer"
+                                                                                    onClick={() => openPreview(doc)}
+                                                                                    onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)}
+                                                                                />
+                                                                            )}
+                                                                            <div className="flex items-center justify-end gap-2">
+                                                                                {!isNpi && (
+                                                                                    <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
+                                                                                        <Eye className="h-4 w-4" />
+                                                                                    </Button>
+                                                                                )}
+                                                                                <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
+                                                                                    <Download className="h-4 w-4" />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </CardContent>
+                                                                    </Card>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </AccordionContent>
                                                 </AccordionItem>
@@ -879,32 +887,43 @@ const CommitteeReview = () => {
                                                             {detailsDocsPsv.length === 0 && (
                                                                 <div className="text-sm text-muted-foreground">No PSV-fetched documents.</div>
                                                             )}
-                                                            {detailsDocsPsv.map((doc, idx) => (
-                                                                <Card key={`p-${doc.fileType}-${idx}`}>
-                                                                    <CardHeader className="pb-2">
-                                                                        <div className="flex items-center justify-between">
-                                                                            <CardTitle className="text-base">{doc.label}</CardTitle>
-                                                                            <Badge variant={/verified|complete/i.test(doc.status) ? 'default' : /pending|in progress/i.test(doc.status) ? 'secondary' : 'outline'}>
-                                                                                {doc.status || '—'}
-                                                                            </Badge>
-                                                                        </div>
-                                                                    </CardHeader>
-                                                                    <CardContent className="space-y-2">
-                                                                        <img src={imagePathFor(doc.fileType)} alt={doc.label}
-                                                                            className="h-24 w-full rounded border object-cover cursor-pointer"
-                                                                            onClick={() => openPreview(doc)}
-                                                                            onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)} />
-                                                                        <div className="flex items-center justify-end gap-2">
-                                                                            <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
-                                                                                <Eye className="h-4 w-4" />
-                                                                            </Button>
-                                                                            <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
-                                                                                <Download className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </div>
-                                                                    </CardContent>
-                                                                </Card>
-                                                            ))}
+                                                            {detailsDocsPsv.map((doc, idx) => {
+                                                                const isNpi = String(doc?.fileType || '').toLowerCase() === 'npi';
+                                                                return (
+                                                                    <Card key={`p-${doc.fileType}-${idx}`}>
+                                                                        <CardHeader className="pb-2">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <CardTitle className="text-base">{doc.label}</CardTitle>
+                                                                                <Badge variant={/verified|complete/i.test(doc.status) ? 'default' : /pending|in progress/i.test(doc.status) ? 'secondary' : 'outline'}>
+                                                                                    {doc.status || '—'}
+                                                                                </Badge>
+                                                                            </div>
+                                                                        </CardHeader>
+                                                                        <CardContent className="space-y-2">
+                                                                            {!isNpi && (
+                                                                                // eslint-disable-next-line @next/next/no-img-element
+                                                                                <img
+                                                                                    src={imagePathFor(doc.fileType)}
+                                                                                    alt={doc.label}
+                                                                                    className="h-24 w-full rounded border object-cover cursor-pointer"
+                                                                                    onClick={() => openPreview(doc)}
+                                                                                    onError={(e) => handleImageError(e.currentTarget as HTMLImageElement, doc.fileType)}
+                                                                                />
+                                                                            )}
+                                                                            <div className="flex items-center justify-end gap-2">
+                                                                                {!isNpi && (
+                                                                                    <Button size="icon" variant="ghost" onClick={() => openPreview(doc)}>
+                                                                                        <Eye className="h-4 w-4" />
+                                                                                    </Button>
+                                                                                )}
+                                                                                <Button size="icon" variant="ghost" onClick={() => handleDownloadDoc(doc.fileType)}>
+                                                                                    <Download className="h-4 w-4" />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </CardContent>
+                                                                    </Card>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </AccordionContent>
                                                 </AccordionItem>
@@ -1055,7 +1074,7 @@ const CommitteeReview = () => {
                                 <div>
                                     <DialogTitle>Credentialing Report</DialogTitle>
                                     <DialogDescription>
-                                        {reportData ? (reportData.provider_name || reportData.provider_id || reportData.meta?.provider_id || selectedProvider?.id || 'APP-1073') : 'APP-1073'}
+                                        {reportData ? (reportData.provider_name || selectedProvider?.name || '') : (selectedProvider?.name || '')}
                                     </DialogDescription>
                                 </div>
                                 {reportData && (
