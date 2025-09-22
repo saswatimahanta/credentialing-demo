@@ -41,12 +41,25 @@ import {
     CheckCircle as CheckCircleIcon,
     Download as DownloadIcon
 } from '@mui/icons-material';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select as CnSelect,
+    SelectContent as CnSelectContent,
+    SelectItem as CnSelectItem,
+    SelectTrigger as CnSelectTrigger,
+    SelectValue as CnSelectValue
+} from '@/components/ui/select';
+import { Button as CnButton } from '@/components/ui/button';
 import mockDatabase from '@/components/committee-review/mockDatabase';
 import api from '@/lib/mock-data';
 import ProviderDetailsDialog from '@/components/committee-review/provider-details-dialog';
 import ChecklistManager from '@/components/committee-review/checklist-manager';
 import ProviderChatSidebar from '@/components/committee-review/provider-chat-sidebar';
 import { Card,CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import CommitteeReviewTable from '@/components/committee-review/committee-review-table';
+import { ListFilter } from 'lucide-react';
+
 
 const CommitteeReview = () => {
     const [providers, setProviders] = useState([]);
@@ -57,6 +70,7 @@ const CommitteeReview = () => {
     const [reportDialogOpen, setReportDialogOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [menuProvider, setMenuProvider] = useState(null);
+    const [showFilters, setShowFilters] = useState(true);
     const [approvalData, setApprovalData] = useState({
         decision: 'approve',
         comments: ''
@@ -66,27 +80,37 @@ const CommitteeReview = () => {
     const [reportData, setReportData] = useState(null);
     const [reportLoading, setReportLoading] = useState(false);
     const [reportError, setReportError] = useState(null);
-    const [filters, setFilters] = useState({
-        specialty: "",
-        market: "",
-        status: "",
-        analyst: "",
-        networkImpact: "",
-    });
+    // const [filters, setFilters] = useState({
+    //     specialty: "",
+    //     market: "",
+    //     status: "",
+    //     analyst: "",
+    //     networkImpact: "",
+    // });
     const [selected, setSelected] = useState<number[]>([]);
+    const [filters, setFilters] = useState({
+        providerName: "",   // maps to provider.name
+        specialty: "all",      // maps to provider.specialty
+        market: "all",         // maps to provider.market
+        status: "all",         // maps to provider.status
+        assignedAnalyst: "all",// maps to provider.assignedAnalyst
+        networkImpact: "all"   // maps to provider.networkImpact
+    });
 
     const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     };
 
-    const filteredProviders = providers.filter((p: any) =>
-        (filters.specialty === "" || p.specialty.toLowerCase().includes(filters.specialty.toLowerCase())) &&
-        (filters.market === "" || p.market.toLowerCase().includes(filters.market.toLowerCase())) &&
-        (filters.status === "" || p.status.toLowerCase().includes(filters.status.toLowerCase())) &&
-        (filters.analyst === "" || p.assignedAnalyst.toLowerCase().includes(filters.analyst.toLowerCase())) &&
-        (filters.networkImpact === "" || p.networkImpact.toLowerCase().includes(filters.networkImpact.toLowerCase()))
+    const filteredProviders = providers.filter((p) =>
+        (filters.providerName === "all" || p.name.toLowerCase().includes(filters.providerName.toLowerCase())) &&
+        (filters.specialty === "all" || p.specialty.toLowerCase() === filters.specialty.toLowerCase()) &&
+        (filters.market === "all" || p.market.toLowerCase() === filters.market.toLowerCase()) &&
+        (filters.status === "all" || p.status.toLowerCase() === filters.status.toLowerCase()) &&
+        (filters.assignedAnalyst === "all" || p.assignedAnalyst.toLowerCase() === filters.assignedAnalyst.toLowerCase()) &&
+        (filters.networkImpact === "all" || p.networkImpact.toLowerCase() === filters.networkImpact.toLowerCase())
     );
 
+    useEffect(()=>{console.log(filteredProviders)}, [providers])
 
     useEffect(() => {
         loadProviders();
@@ -173,6 +197,7 @@ const CommitteeReview = () => {
     };
 
     const handleMenuOpen = (event: any, provider: any) => {
+        console.log('Opening menu for:', provider);
         setAnchorEl(event.currentTarget);
         setMenuProvider(provider);
     };
@@ -183,9 +208,11 @@ const CommitteeReview = () => {
     };
 
     const handleViewDetails = (provider: any) => {
+        if (!provider) return;
+        console.log('clicked view details')
         setSelectedProvider(provider);
         setDetailsDialogOpen(true);
-        handleMenuClose();
+        // handleMenuClose();
     };
 
     const handleViewChecklist = (provider: any) => {
@@ -356,24 +383,22 @@ const CommitteeReview = () => {
                 <CardDescription>
                     <div className='flex justify-between'>
                         <p>Review and approve provider credentialing applications</p>
-                        <div className='flex justify-center items-center'>
-                            <FormControl sx={{ m: 1, minWidth: 150}} size="small">
-                                <InputLabel id="demo-select-small-label">Organization</InputLabel>
-                                <Select
-                                    labelId="demo-select-small-label"
-                                    id="demo-select-small"
-                                    value={organization}
-                                    label="Organization"
-                                    onChange={handleChange}
-                                >
-                                    <MenuItem value="">
-                                    <em>None</em>
-                                    </MenuItem>
-                                    <MenuItem value={10}>Org 1</MenuItem>
-                                    <MenuItem value={20}>Org 2</MenuItem>
-                                    <MenuItem value={30}>Org 3</MenuItem>
-                                </Select>
-                            </FormControl>
+                        <div className='flex justify-center items-center gap-4'>
+                            <CnButton variant="outline" size="sm" className="h-10 gap-1" onClick={() => setShowFilters(v => !v)}>
+                                <ListFilter className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filters</span>
+                            </CnButton>
+                            <CnSelect
+                                value='Organizations'
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="Organizations" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="Organizations">Organizations</CnSelectItem>
+                                <CnSelectItem value="Cardiology">Cardiology</CnSelectItem>
+                                <CnSelectItem value="Oncology">Oncology</CnSelectItem>
+                                <CnSelectItem value="Dermatology">Dermatology</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
                             <Button
                                 variant={selected.length > 0 ? "default" : "ghost"}
                                 onClick={handleApprove}
@@ -387,181 +412,132 @@ const CommitteeReview = () => {
 
             </CardHeader>
             <CardContent>
+                {showFilters && <div className="mb-4 rounded-md border p-4 bg-muted/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                            <Label htmlFor="f-provider">Provider Name</Label>
+                            <Input
+                                id="f-provider"
+                                value={filters.providerName}
+                                onChange={(e) => setFilters({ ...filters, providerName: e.target.value })}
+                                placeholder="e.g., Dr. Smith"
+                            />
+                            </div>
+
+                            <div>
+                            <Label>Specialty</Label>
+                            <CnSelect
+                                value={filters.specialty}
+                                onValueChange={(v) => setFilters({ ...filters, specialty: v })}
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="All Specialties" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="all">All</CnSelectItem>
+                                <CnSelectItem value="Cardiology">Cardiology</CnSelectItem>
+                                <CnSelectItem value="Oncology">Oncology</CnSelectItem>
+                                <CnSelectItem value="Dermatology">Dermatology</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
+                            </div>
+
+                            <div>
+                            <Label>Market</Label>
+                            <CnSelect
+                                value={filters.market}
+                                onValueChange={(v) => setFilters({ ...filters, market: v })}
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="All Markets" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="all">All</CnSelectItem>
+                                <CnSelectItem value="California">California</CnSelectItem>
+                                <CnSelectItem value="Texas">Texas</CnSelectItem>
+                                <CnSelectItem value="Florida">Florida</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
+                            </div>
+
+                            <div>
+                            <Label>Status</Label>
+                            <CnSelect
+                                value={filters.status}
+                                onValueChange={(v) => setFilters({ ...filters, status: v })}
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="All Statuses" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="all">All</CnSelectItem>
+                                <CnSelectItem value="In Progress">In Progress</CnSelectItem>
+                                <CnSelectItem value="Committee Review">Committee Review</CnSelectItem>
+                                <CnSelectItem value="Approved">Approved</CnSelectItem>
+                                <CnSelectItem value="Denied">Denied</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
+                            </div>
+
+                            <div>
+                            <Label>Assigned Analyst</Label>
+                            <CnSelect
+                                value={filters.assignedAnalyst}
+                                onValueChange={(v) => setFilters({ ...filters, assignedAnalyst: v })}
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="All Analysts" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="all">All</CnSelectItem>
+                                <CnSelectItem value="Bob Williams">Bob Williams</CnSelectItem>
+                                <CnSelectItem value="Alice Smith">Alice Smith</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
+                            </div>
+
+                            <div>
+                            <Label>Network Impact</Label>
+                            <CnSelect
+                                value={filters.networkImpact}
+                                onValueChange={(v) => setFilters({ ...filters, networkImpact: v })}
+                            >
+                                <CnSelectTrigger><CnSelectValue placeholder="All Impacts" /></CnSelectTrigger>
+                                <CnSelectContent>
+                                <CnSelectItem value="all">All</CnSelectItem>
+                                <CnSelectItem value="High">High</CnSelectItem>
+                                <CnSelectItem value="Medium">Medium</CnSelectItem>
+                                <CnSelectItem value="Low">Low</CnSelectItem>
+                                </CnSelectContent>
+                            </CnSelect>
+                            </div>
+
+
+                    </div>
+                    <div className="mt-3 flex gap-2 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setFilters({
+                                providerName: "",
+                                specialty: "all",
+                                market: "all",
+                                status: "all",
+                                assignedAnalyst: "all",
+                                networkImpact: "all"
+                                });
+                            }}
+                            >
+                            Clear
+                        </Button>
+                        <Button onClick={() => setShowFilters(false)}>Apply</Button>
+                    </div>
+                </div>}
             <Box>
-
-                {/* Providers Table */}
-                <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                    <TableContainer>
-                        <Table stickyHeader>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell padding="checkbox">
-                                    <Checkbox
-                                        indeterminate={
-                                            selected.some(id => filteredProviders.some(p => p.id === id)) &&
-                                            selected.length < filteredProviders.length
-                                        }
-                                        checked={
-                                            filteredProviders.length > 0 &&
-                                            filteredProviders.every(p => selected.includes(p.id))
-                                        }
-                                        onChange={handleSelectAll}
-                                    />
-
-                                    </TableCell>
-                                    <TableCell>Provider</TableCell>
-                                    <TableCell>Specialty</TableCell>
-                                    <TableCell>Market</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Assigned Analyst</TableCell>
-                                    <TableCell>Submission Date</TableCell>
-                                    <TableCell>Network Impact</TableCell>
-                                    <TableCell align="center">Actions</TableCell>
-                                </TableRow>
-
-                                {/* 🔽 Filter Row */}
-                                <TableRow>
-                                    <TableCell /> {/* Empty for checkbox column */}
-                                    <TableCell /> {/* Provider column - no filter */}
-                                    <TableCell>
-                                    <TextField
-                                        size="small"
-                                        variant="outlined"
-                                        placeholder="Filter"
-                                        value={filters.specialty}
-                                        onChange={(e) => handleFilterChange("specialty", e.target.value)}
-                                    />
-                                    </TableCell>
-                                    <TableCell>
-                                    <TextField
-                                        size="small"
-                                        variant="outlined"
-                                        placeholder="Filter"
-                                        value={filters.market}
-                                        onChange={(e) => handleFilterChange("market", e.target.value)}
-                                    />
-                                    </TableCell>
-                                    <TableCell>
-                                    <TextField
-                                        size="small"
-                                        variant="outlined"
-                                        placeholder="Filter"
-                                        value={filters.status}
-                                        onChange={(e) => handleFilterChange("status", e.target.value)}
-                                    />
-                                    </TableCell>
-                                    <TableCell>
-                                    <TextField
-                                        size="small"
-                                        variant="outlined"
-                                        placeholder="Filter"
-                                        value={filters.analyst}
-                                        onChange={(e) => handleFilterChange("analyst", e.target.value)}
-                                    />
-                                    </TableCell>
-                                    <TableCell /> {/* Submission Date - leave out filter for now */}
-                                    <TableCell>
-                                    <TextField
-                                        size="small"
-                                        variant="outlined"
-                                        placeholder="Filter"
-                                        value={filters.networkImpact}
-                                        onChange={(e) => handleFilterChange("networkImpact", e.target.value)}
-                                    />
-                                    </TableCell>
-                                    <TableCell />
-                                </TableRow>
-                            </TableHead>
-
-                            <TableBody>
-                                {filteredProviders.map((provider: any) => {
-                                    const isChecked = selected.includes(provider.id);
-
-                                    return (
-                                    <TableRow key={provider.id} hover>
-                                        <TableCell padding="checkbox">
-                                        <Checkbox
-                                            checked={isChecked}
-                                            onChange={() => handleCheckboxClick(provider.id)}
-                                        />
-                                        </TableCell>
-                                        <TableCell>
-                                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                                            <Box>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: "medium" }}>
-                                                {provider.name}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                ID: {provider.id}
-                                            </Typography>
-                                            </Box>
-                                        </Box>
-                                        </TableCell>
-                                        <TableCell>{provider.specialty}</TableCell>
-                                        <TableCell>{provider.market}</TableCell>
-                                        <TableCell>
-                                        <Chip
-                                            label={provider.status}
-                                            color={getStatusColor(provider.status)}
-                                            size="small"
-                                        />
-                                        </TableCell>
-                                        <TableCell>{provider.assignedAnalyst}</TableCell>
-                                        <TableCell>{provider.submissionDate}</TableCell>
-                                        <TableCell>
-                                        <Chip
-                                            label={provider.networkImpact}
-                                            color={
-                                            provider.networkImpact === "High"
-                                                ? "error"
-                                                : provider.networkImpact === "Medium"
-                                                ? "warning"
-                                                : "success"
-                                            }
-                                            variant="outlined"
-                                            size="small"
-                                        />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                        <IconButton
-                                            onClick={(e: any) => handleMenuOpen(e, provider)}
-                                            size="small"
-                                        >
-                                            <MoreVertIcon />
-                                        </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                    );
-                                })}
-                                </TableBody>
-
-                        </Table>
-                    </TableContainer>
-                </Paper>
-
-                {/* Action Menu */}
-                <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}
-                >
-                    <MenuItem onClick={() => handleViewDetails(menuProvider)}>
-                        View Details
-                    </MenuItem>
-                    {/* <MenuItem onClick={() => handleViewChecklist(menuProvider)}>
-                        View Checklist
-                    </MenuItem> */}
-                    <MenuItem onClick={() => handleGenerateReport(menuProvider)}>
-                        Generate Report
-                    </MenuItem>
-                    <MenuItem onClick={() => handleOpenChat(menuProvider)}>
-                        Chat with AI
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem onClick={() => handleStartApproval(menuProvider)}>
-                        Approve/Deny
-                    </MenuItem>
-                </Menu>
+                <CommitteeReviewTable
+                    filteredProviders={filteredProviders}
+                    selected={selected}
+                    handleSelectAll={handleSelectAll}
+                    handleCheckboxClick={handleCheckboxClick}
+                    handleMenuOpen={handleMenuOpen}
+                    getStatusColor={getStatusColor}
+                    handleViewDetails={handleViewDetails}
+                    handleGenerateReport={handleGenerateReport}
+                    handleOpenChat={handleOpenChat}
+                    handleStartApproval={handleStartApproval}
+                />
 
                 {/* Provider Details Dialog */}
                 <ProviderDetailsDialog
@@ -624,7 +600,8 @@ const CommitteeReview = () => {
                                     <MenuItem value="approve">Approve</MenuItem>
                                     <MenuItem value="deny">Deny</MenuItem>
                                 </Select>
-                            </FormControl>
+
+
 
                             <TextField
                                 fullWidth
@@ -639,7 +616,9 @@ const CommitteeReview = () => {
                                 required
                                 helperText="Please provide reasoning for your decision"
                             />
+                            </FormControl>
                         </Box>
+
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setApprovalDialogOpen(false)}>

@@ -56,7 +56,14 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/components/contexts/user-context';
 import mockDatabase from './mockDatabase';
-
+import {
+    Card as CnCard,
+    CardContent as CnCardContent,
+    CardHeader as CnCardHeader,
+    CardTitle as CnCardTitle,
+    CardDescription as CnCardDescription
+} from "@/components/ui/card"
+import { Button as CnButton } from '@/components/ui/button';
 const submittedDocuments = [
     { name: 'CV/Resume', type: 'PDF', size: '2.3 MB', status: 'complete' },
     { name: 'Medical License', type: 'PDF', size: '1.1 MB', status: 'complete' },
@@ -76,6 +83,7 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
     const [verificationResults, setVerificationResults] = useState({});
     const [loading, setLoading] = useState(false);
 
+    console.log('open', open)
     useEffect(() => {
         if (provider) {
             // Get the most up-to-date provider data from database
@@ -311,17 +319,14 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                 </Box>
 
                 <Box sx={{ p: 3 }}>
-                    {/* Overview Tab */}
                     {tabValue === 0 && (
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={6}>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom>
-                                            <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                                            Provider Information
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
+                                <CnCard>
+                                    <CnCardHeader>
+                                        <CnCardTitle>Provider Information</CnCardTitle>
+                                    </CnCardHeader>
+                                    <CnCardContent>
                                         <Grid container spacing={2}>
                                             <Grid item xs={6}>
                                                 <Typography variant="body2" color="text.secondary">
@@ -367,19 +372,17 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                                 />
                                             </Grid>
                                         </Grid>
-                                    </CardContent>
-                                </Card>
+                                    </CnCardContent>
+                                </CnCard>
 
-                                <Card sx={{ mt: 2 }}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom>
-                                            <AssignmentIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                                            Case Management
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
+                                <CnCard className='mt-4'>
+                                    <CnCardHeader>
+                                        <CnCardTitle>Case Management</CnCardTitle>
+                                    </CnCardHeader>
+                                    <CnCardContent>
                                         <Grid container spacing={2}>
                                             <Grid item xs={12}>
-                                                <FormControl fullWidth>
+                                                <FormControl flex={1}>
                                                     <InputLabel>Assigned Analyst</InputLabel>
                                                     <Select
                                                         value={assignedAnalyst}
@@ -422,18 +425,16 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                                 />
                                             </Grid>
                                         </Grid>
-                                    </CardContent>
-                                </Card>
+                                    </CnCardContent>
+                                </CnCard>
                             </Grid>
 
-                            <Grid item xs={12} md={6}>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom>
-                                            Progress Overview
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
-
+                            <Grid item xs={12} md={6} flex={1}>
+                                <CnCard>
+                                    <CnCardHeader>
+                                        <CnCardTitle>Progress Overview</CnCardTitle>
+                                    </CnCardHeader>
+                                    <CnCardContent>
                                         <Box sx={{ mb: 3 }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                                 <Typography variant="body2">Checklist Completion</Typography>
@@ -462,41 +463,40 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                                 'Not updated'
                                             }
                                         </Typography>
-                                    </CardContent>
-                                </Card>
+                                    </CnCardContent>
+                                </CnCard>
 
-                                <Card sx={{ mt: 2 }}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom>
-                                            Quick Actions
-                                        </Typography>
-                                        <Divider sx={{ mb: 2 }} />
+                                <CnCard className='mt-4'>
+                                    <CnCardHeader>
+                                        <CnCardTitle>Quick Actions</CnCardTitle>
+                                    </CnCardHeader>
+                                    <CnCardContent>
                                         <Stack spacing={1}>
-                                            <Button
-                                                variant="outlined"
+                                            <CnButton
+                                                variant="outline"
                                                 startIcon={<VerifiedUserIcon />}
                                                 fullWidth
                                                 onClick={() => setTabValue(3)}
                                             >
                                                 Run Verification Checks
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
+                                            </CnButton>
+                                            <CnButton
+                                                variant="outline"
                                                 startIcon={<DownloadIcon />}
                                                 fullWidth
                                             >
                                                 Download Application
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
+                                            </CnButton>
+                                            <CnButton
+                                                variant="outline"
                                                 startIcon={<ChatIcon />}
                                                 fullWidth
                                             >
                                                 Contact Provider
-                                            </Button>
+                                            </CnButton>
                                         </Stack>
-                                    </CardContent>
-                                </Card>
+                                    </CnCardContent>
+                                </CnCard>
                             </Grid>
                         </Grid>
                     )}
@@ -725,18 +725,18 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
             </DialogContent>
 
             <DialogActions sx={{ p: 3, borderTop: 1, borderColor: 'divider' }}>
-                <Button onClick={onClose}>
+                <CnButton onClick={onClose}>
                     Cancel
-                </Button>
+                </CnButton>
                 {userRole === 'analyst' && (
                     <>
-                        <Button
-                            variant="outlined"
+                        <CnButton
+                            variant="outline"
                             onClick={handleSave}
                             startIcon={<SaveIcon />}
                         >
                             Save Changes
-                        </Button>
+                        </CnButton>
                         {/* <Button
                             variant="contained"
                             onClick={handleSendToCommittee}
