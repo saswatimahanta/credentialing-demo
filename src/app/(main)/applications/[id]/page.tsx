@@ -15,7 +15,7 @@ import mockApi from '@/lib/mock-data';
 import type { Application, AiIssue, TimelineEvent } from '@/lib/mock-data';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { smartAutoEmailGeneration } from '@/ai/flows/smart-auto-email-generation';
+// Removed AI flow import to avoid bundling Node-only deps in client
 // import { generateApproveModifyRejectSuggestions } from '@/ai/flows/generate-approve-modify-reject-suggestions';
 // import { summarizeApplicationData } from '@/ai/flows/application-data-summarization';
 import axios from 'axios';
@@ -54,7 +54,7 @@ export default function ApplicationDetailsPage() {
       try {
         if (!id) return;
         const response = await axios.get(`${API_BASE_URL}/api/applications/${id}`);
-        console.log('applications',response.data)
+        console.log('applications', response.data)
         setApplication(response.data);
 
         const issuesData = await axios.get(`${API_BASE_URL}/api/applications/aiissues/${id}`);
@@ -79,11 +79,13 @@ export default function ApplicationDetailsPage() {
 
   const handleGenerateEmail = async () => {
     if (!application) return;
-    const context = `Regarding your application (ID: ${application.id}), we need to discuss the following issues: ${aiIssues.map(i => i.issue).join(', ')}.`;
-    const result = await smartAutoEmailGeneration({ recipientType: 'provider', recipientName: application.name, subject: `Action Required for Application ${application.id}`, context });
-
-    const tempEmailDraft = result.emailDraft.replace('{{{applicationFormLink}}}', `http://localhost:9002/applications/intake/form?formId=${application.formId}`);
-    setEmailDraft(tempEmailDraft.replace(/\n/g, "<br>"));
+    const issuesList = aiIssues.length ? aiIssues.map(i => `- ${i.issue}`).join('\n') : '- No issues detected';
+    const body = `Hi ${application.name},\n\n` +
+      `Regarding your application (ID: ${application.id}), we need to discuss the following items:\n` +
+      `${issuesList}\n\n` +
+      `Please review your application form here: http://localhost:9002/applications/intake/form?formId=${application.formId}\n\n` +
+      `Best regards,\nCredentialing Team`;
+    setEmailDraft(body.replace(/\n/g, '<br>'));
     setIsEmailDialogOpen(true);
   }
 

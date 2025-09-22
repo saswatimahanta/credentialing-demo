@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 
-export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
+export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; type: string; providerName?: string; specialty?: string; }) => {
 
 
 
@@ -100,6 +100,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
                 <p><strong>License Type</strong> {data.type || 'N/A'} <Badge variant="outline" className="ml-2">{(data.type_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
                 <p><strong>IssueDate</strong> {data.issueDate || 'N/A'} <Badge variant="outline" className="ml-2">{(data.issueDate_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
                 <p><strong>Institution</strong> {data.institution || 'N/A'} <Badge variant="outline" className="ml-1">{(data.institution_confident_score * 100)?.toFixed(0) || 'N/A'}%</Badge></p>
+                <p><strong>Specialty</strong> {specialty || data.specialty || 'N/A'}</p>
             </div>
         );
     }
@@ -126,26 +127,26 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
         );
     }
 
-    // License Board mock (license_board)
+    // License Board (license_board) — sourced from API ocrData
     if (t === "license_board") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-                <p><strong>License:</strong> A 64753 <Badge variant="outline" className="ml-2">97%</Badge></p>
-                <p><strong>Name:</strong> HIJAZIN, MUNTHER A <Badge variant="outline" className="ml-2">97%</Badge></p>
-                <p><strong>License Type:</strong> Physician and Surgeon A <Badge variant="outline" className="ml-2">95%</Badge></p>
-                <p><strong>Primary Status:</strong> License Renewed & Current <Badge variant="outline" className="ml-2">96%</Badge></p>
-                <p><strong>Specialty:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>Qualification:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>School Name:</strong> University of Sassari Faculty of Medicine and Surgery <Badge variant="outline" className="ml-2">93%</Badge></p>
-                <p><strong>Graduation Year:</strong> 1988 <Badge variant="outline" className="ml-2">94%</Badge></p>
-                <p><strong>Previous Names:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>Address:</strong> 10916 Downey Ave DOWNEY CA 90241-3709 LOS ANGELES county <Badge variant="outline" className="ml-2">90%</Badge></p>
-                <p><strong>Issuance Date:</strong> 3-Apr-98 <Badge variant="outline" className="ml-2">92%</Badge></p>
-                <p><strong>Expiration Date:</strong> 31-Jan-26 <Badge variant="outline" className="ml-2">92%</Badge></p>
-                <p><strong>Current Date/Time:</strong> August 7, 2025 9:5:35 AM <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>Professional URL:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>Disciplinary Actions:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
-                <p><strong>Public Record Actions:</strong> Administrative Disciplinary Actions (NO INFORMATION TO MEET THE CRITERIA FOR POSTING) <Badge variant="outline" className="ml-2">88%</Badge></p>
+                <p><strong>License:</strong> {data["LicenseBoard_ExtractedLicense"] ?? 'N/A'}</p>
+                <p><strong>Name:</strong> {data["LicenseBoard_Extracted_Name"] ?? 'N/A'}</p>
+                <p><strong>License Type:</strong> {data["LicenseBoard_Extracted_License_Type"] ?? 'N/A'}</p>
+                <p><strong>Primary Status:</strong> {data["LicenseBoard_Extracted_Primary_Status"] ?? 'N/A'}</p>
+                <p><strong>Specialty:</strong> {data["LicenseBoard_Extracted_Specialty"] ?? 'N/A'}</p>
+                <p><strong>Qualification:</strong> {data["LicenseBoard_Extracted_Qualification"] ?? 'N/A'}</p>
+                <p><strong>School Name:</strong> {data["LicenseBoard_Extracted_School_Name"] ?? 'N/A'}</p>
+                <p><strong>Graduation Year:</strong> {data["LicenseBoard_Extracted_Graduation_Year"] ?? 'N/A'}</p>
+                <p><strong>Previous Names:</strong> {data["LicenseBoard_Extracted_Previous_Names"] ?? 'N/A'}</p>
+                <p><strong>Address:</strong> {data["LicenseBoard_Extracted_Address"] ?? 'N/A'}</p>
+                <p><strong>Issuance Date:</strong> {data["LicenseBoard_Extracted_Issuance_Date"] ?? 'N/A'}</p>
+                <p><strong>Expiration Date:</strong> {data["LicenseBoard_Extracted_Expiration_Date"] ?? 'N/A'}</p>
+                <p><strong>Current Date/Time:</strong> {data["LicenseBoard_Extracted_Current_Date_Time"] ?? 'N/A'}</p>
+                <p><strong>Professional URL:</strong> {data["LicenseBoard_Extracted_Professional_Url"] ?? 'N/A'}</p>
+                <p><strong>Disciplinary Actions:</strong> {data["LicenseBoard_Extracted_Disciplinary_Actions"] ?? 'N/A'}</p>
+                <p><strong>Public Record Actions:</strong> {data["LicenseBoard_Extracted_Public_Record_Actions"] ?? 'N/A'}</p>
             </div>
         );
     }
@@ -156,7 +157,7 @@ export const OcrOutput = ({ data, type }: { data: any, type: string }) => {
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>University / Issuer:</strong> University of California <Badge variant="outline" className="ml-2">95%</Badge></p>
                 <p><strong>Campus:</strong> Irvine <Badge variant="outline" className="ml-2">96%</Badge></p>
-                <p><strong>Recipient Name:</strong> Munther A Hijazin <Badge variant="outline" className="ml-2">94%</Badge></p>
+                <p><strong>Recipient Name:</strong> {providerName || 'N/A'} <Badge variant="outline" className="ml-2">94%</Badge></p>
                 <p><strong>Degree:</strong> Doctor of Psychology <Badge variant="outline" className="ml-2">93%</Badge></p>
                 <p><strong>Field of Study:</strong> Engineering <Badge variant="outline" className="ml-2">90%</Badge></p>
                 <p><strong>Date of Conferral:</strong> June 17, 1989 <Badge variant="outline" className="ml-2">91%</Badge></p>

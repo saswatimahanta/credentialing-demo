@@ -74,6 +74,7 @@ export default function CredentialingWorkflowPage() {
     const [providerName, setProviderName] = useState('')
     const imgSuccess = selectedDocument?.fileType === 'CV' || selectedDocument?.fileType === 'npi' || selectedDocument?.fileType === 'board_certification' || selectedDocument?.fileType === 'license_board' || selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE'
     const isNpi = (selectedDocument?.fileType || '').toLowerCase() === 'npi';
+    const isSanctions = (selectedDocument?.fileType || '').toLowerCase() === 'sanctions';
 
 
     const documentType = selectedDocument?.fileType?.split('/')?.[0] || '';
@@ -85,6 +86,7 @@ export default function CredentialingWorkflowPage() {
     const { toast } = useToast();
 
     const [formData, setFormData] = useState<any>({});
+    const [sendingToCommittee, setSendingToCommittee] = useState(false);
 
     const handleAddToMailList = () => {
         toast({ title: "Email", description: "Add to mail list successful!" });
@@ -102,6 +104,36 @@ export default function CredentialingWorkflowPage() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    const handleSanctionsDownload = async () => {
+        try {
+            const normName = (providerName || '').trim().replace(/\s+/g, '_');
+            const candidates = [
+                `/sanctions/${id}.xlsx`,
+                `/sanctions/${normName}_Optout.xlsx`,
+                `/sanctions/${normName}.xlsx`,
+            ];
+            for (const path of candidates) {
+                try {
+                    const head = await fetch(path, { method: 'HEAD' });
+                    if (head.ok) {
+                        const a = document.createElement('a');
+                        a.href = path;
+                        a.download = path.split('/').pop() || 'sanctions.xlsx';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        return;
+                    }
+                } catch (e) {
+                    // ignore and try next candidate
+                }
+            }
+            toast({ title: 'Download', description: 'Sanctions file not found for this provider.' });
+        } catch (e) {
+            toast({ title: 'Download', description: 'Failed to download sanctions file.' });
+        }
     }
 
     // Map normalized backend keys to UI-friendly fileType values used across the app
@@ -297,6 +329,29 @@ export default function CredentialingWorkflowPage() {
         setDocumentUploadType(e);
     }
 
+    const handleSendToCommittee = async () => {
+        if (sendingToCommittee) return;
+        const confirmed = window.confirm('Send this application to Committee Review?');
+        if (!confirmed) return;
+        try {
+            setSendingToCommittee(true);
+            const res = await fetch(`${API_BASE_URL}/api/applications/send-to-committee/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || 'Failed to send to committee');
+            }
+            toast({ title: 'Success', description: 'Application sent to Committee Review.' });
+            router.push('/applications');
+        } catch (err: any) {
+            toast({ title: 'Error', description: err?.message || 'Failed to send to committee.' });
+        } finally {
+            setSendingToCommittee(false);
+        }
+    };
+
     useEffect(() => {
         async function loadVerificationCenter() {
             if (selectedDocument) {
@@ -345,8 +400,10 @@ export default function CredentialingWorkflowPage() {
                     <Link href="/credentialing"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Credentialing</Link>
                 </Button>
                 <div className='flex justify-between'>
-                    <h1 className="text-2xl font-bold tracking-tight font-headline">Credentialing Workflow for {providerName}</h1>
-                    <Button size="sm">Send to Committee</Button>
+                    <h1 className="text-2xl font-bold tracking-tight font-headline">Primary Source Verification for {providerName}</h1>
+                    <Button size="sm" onClick={handleSendToCommittee} disabled={sendingToCommittee}>
+                        {sendingToCommittee ? 'Sending…' : 'Send to Committee'}
+                    </Button>
                 </div>
             </div>
 
@@ -443,9 +500,13 @@ export default function CredentialingWorkflowPage() {
                                 <div>
                                     <div className="flex items-center gap-2 font-semibold text-lg">
                                         <Upload className="h-5 w-5 text-primary" />
-                                        <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
+                                        {isSanctions ? (
+                                            <h4>Sanctions Evidence</h4>
+                                        ) : (
+                                            <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
+                                        )}
                                     </div>
-                                    {imgSuccess && <Image
+                                    {!isSanctions && imgSuccess && <Image
                                         src={imagePath}
                                         alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
                                         width={600}
@@ -455,17 +516,31 @@ export default function CredentialingWorkflowPage() {
                                     />}
 
                                     <p className="text-sm text-slate-600">
-                                        <span className="font-medium">File Name:</span> {selectedDocument?.filename || '—'}
+                                        {!isSanctions ? (
+                                            <>
+                                                <span className="font-medium">File Name:</span> {selectedDocument?.filename || '—'}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="font-medium">Provider:</span> {providerName || '—'}
+                                            </>
+                                        )}
                                     </p>
                                 </div>
                                 <div className='flex gap-2'>
-                                    <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentPopup}>View</Button>
-                                    <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
+                                    {isSanctions ? (
+                                        <Button size="sm" className="flex-1 w-full" onClick={handleSanctionsDownload}>Download Sanctions File</Button>
+                                    ) : (
+                                        <>
+                                            <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentPopup}>View</Button>
+                                            <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
 
-                        {!isNpi && (
+                        {!isNpi && !isSanctions && (
                             <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
                         )}
 
@@ -478,7 +553,7 @@ export default function CredentialingWorkflowPage() {
                                             <h4>OCR/LLM Output</h4>
                                         </div>
                                         <div className="max-h-96 overflow-auto pr-2">
-                                            <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} />
+                                            <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} providerName={providerName} specialty={formData?.speciality || formData?.specialty} />
                                         </div>
                                     </div>
                                 </div>
