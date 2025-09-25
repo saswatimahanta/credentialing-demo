@@ -28,7 +28,7 @@ export function SpecialtyChart({ data, market }) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle>Top Specialties</CardTitle>
+        <CardTitle>Top 5 Specialties</CardTitle>
         <CardDescription>
           Overview of all application statuses.
         </CardDescription>

@@ -36,6 +36,7 @@ export default function ExecutiveSummary() {
   const [specialtyData, setSpecialtyData] = useState<SpecialtyPoint[]>([])
   const [marketValue, setMarketValue] = useState('ca')
   const [networkImpactData, setNetworkImpactData] = useState<ImpactPoint[]>([])
+  const [distributionData, setDistributionData] = useState([])
   const handleViewClick = (title: string, items: { id: string; name: string; status: string; market: string; }[]) => {
     setModalTitle(title);
     setModalItems(items);
@@ -55,18 +56,18 @@ export default function ExecutiveSummary() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/executive-summary`);
         const kpi = {
-          totalApplications: { value: response?.data?.totalApplications, change: '+15.2%', label: 'Total Applications', trend: [{ month: 'Jan', value: 100 }, { month: 'Feb', value: 120 }, { month: 'Mar', value: 150 }, { month: 'Apr', value: 130 }, { month: 'May', value: 180 }, { month: 'Jun', value: 200 }] },
-          completed: { value: response?.data?.completed, change: '+10.1%', label: 'Completed', trend: [{ month: 'Jan', value: 70 }, { month: 'Feb', value: 80 }, { month: 'Mar', value: 90 }, { month: 'Apr', value: 85 }, { month: 'May', value: 100 }, { month: 'Jun', value: 110 }] },
-          inProgress: { value: response?.data?.inProgress, change: '+5.5%', label: 'In-Progress', trend: [{ month: 'Jan', value: 20 }, { month: 'Feb', value: 25 }, { month: 'Mar', value: 30 }, { month: 'Apr', value: 28 }, { month: 'May', value: 40 }, { month: 'Jun', value: 45 }] },
-          notStarted: { value: response?.data?.notStarted, change: '-2.0%', label: 'Not Started', trend: [{ month: 'Jan', value: 10 }, { month: 'Feb', value: 12 }, { month: 'Mar', value: 15 }, { month: 'Apr', value: 13 }, { month: 'May', value: 20 }, { month: 'Jun', value: 25 }] },
-          needsReview: { value: response?.data?.needsFurtherReview, change: '+25%', label: 'Needs Further Review', trend: [{ month: 'Jan', value: 1 }, { month: 'Feb', value: 2 }, { month: 'Mar', value: 4 }, { month: 'Apr', value: 3 }, { month: 'May', value: 5 }, { month: 'Jun', value: 6 }] },
+          totalApplications: { value: response?.data?.totalApplications, change: response?.data?.totalApplications ? '+15.2%' : '', label: 'Total Applications', trend: [{ month: 'Jan', value: 100 }, { month: 'Feb', value: 120 }, { month: 'Mar', value: 150 }, { month: 'Apr', value: 130 }, { month: 'May', value: 180 }, { month: 'Jun', value: 200 }] },
+          completed: { value: response?.data?.completed, change: response?.data?.completed > 0 ? '+10.1%' : '', label: 'Completed', trend: [{ month: 'Jan', value: 70 }, { month: 'Feb', value: 80 }, { month: 'Mar', value: 90 }, { month: 'Apr', value: 85 }, { month: 'May', value: 100 }, { month: 'Jun', value: 110 }] },
+          inProgress: { value: response?.data?.inProgress, change: response?.data?.inProgress > 0 ? '+5.5%' : '', label: 'In-Progress', trend: [{ month: 'Jan', value: 20 }, { month: 'Feb', value: 25 }, { month: 'Mar', value: 30 }, { month: 'Apr', value: 28 }, { month: 'May', value: 40 }, { month: 'Jun', value: 45 }] },
+          notStarted: { value: response?.data?.notStarted, change: response?.data?.notStarted > 0 ? '-2.0%' : '', label: 'Not Started', trend: [{ month: 'Jan', value: 10 }, { month: 'Feb', value: 12 }, { month: 'Mar', value: 15 }, { month: 'Apr', value: 13 }, { month: 'May', value: 20 }, { month: 'Jun', value: 25 }] },
+          needsReview: { value: response?.data?.needsFurtherReview, change: '', label: 'Needs Further Review', trend: [{ month: 'Jan', value: 1 }, { month: 'Feb', value: 2 }, { month: 'Mar', value: 4 }, { month: 'Apr', value: 3 }, { month: 'May', value: 5 }, { month: 'Jun', value: 6 }] },
         }
         setKpiData(kpi)
 
         const barChartData = response?.data?.avgTimeToCredential.map((row: { month: string; days: number }) => {
           return {
             month: row.month,
-            avgTime: row.days,
+            avgTime: Math.floor(row.days/6),
           }
         })
         setTimeToCredentialData(barChartData)
@@ -87,7 +88,15 @@ export default function ExecutiveSummary() {
           { impact: 'Low', count: response?.data?.lowImpact, percent: (response?.data?.lowImpact / total) * 100, color: '#4caf50' }
         ]
         setNetworkImpactData(impactChartData)
-        console.log('response', response.data)
+
+        const donutChartData = [
+          { name: 'In Progress', value: response?.data?.inProgress },
+          { name: 'Committee Review', value: response?.data?.committeeReview },
+          { name: 'Approved', value: response?.data?.approved },
+          { name: 'Initiated', value: 38 },
+          { name: 'Denied', value: response?.data?.denied },
+        ]
+        setDistributionData(donutChartData)
       } catch (error) {
         console.error('Failed to fetch applications:', error);
       }
@@ -144,7 +153,7 @@ export default function ExecutiveSummary() {
             title={data.label}
             value={String(data.value)}
             change={data.change}
-            description="vs. last month"
+            description={data.value > 0 ? "vs. last month" : ''}
             trendData={data.trend}
           />
         ))}
@@ -155,7 +164,7 @@ export default function ExecutiveSummary() {
           <TimeToCredentialBarChart barChartData={timeToCredentialData} />
         </div>
         <div className="lg:col-span-3">
-          <StatusPieChart />
+          <StatusPieChart data={distributionData} />
 
         </div>
 

@@ -52,8 +52,7 @@ const CommitteeReview = () => {
         market: 'All',
         source: 'All',
         assignee: '',
-        progressMin: '',
-        progressMax: ''
+        impact: 'All'
     } as const;
     const [filters, setFilters] = useState({ ...defaultFilters });
     const [draftFilters, setDraftFilters] = useState({ ...defaultFilters });
@@ -73,10 +72,9 @@ const CommitteeReview = () => {
         const marketOk = filters.market === 'All' || String(p.market || '').toLowerCase() === String(filters.market).toLowerCase();
         const sourceOk = filters.source === 'All' || String(p.source || '').toLowerCase() === String(filters.source).toLowerCase();
         const assigneeOk = !filters.assignee || String(p.assignedAnalyst || '').toLowerCase().includes(filters.assignee.toLowerCase());
+        const impactOk = filters.source === 'All' || String(p.impact || '').toLowerCase() === String(filters.impact).toLowerCase();
         const prog = typeof p.progress === 'number' ? p.progress : (p.progress ? Number(p.progress) : 0);
-        const minOk = !filters.progressMin || (!Number.isNaN(Number(filters.progressMin)) && prog >= Number(filters.progressMin));
-        const maxOk = !filters.progressMax || (!Number.isNaN(Number(filters.progressMax)) && prog <= Number(filters.progressMax));
-        return pidOk && nameOk && statusOk && marketOk && sourceOk && assigneeOk && minOk && maxOk;
+        return pidOk && nameOk && statusOk && marketOk && sourceOk && assigneeOk && impactOk;
     });
 
 
@@ -166,6 +164,7 @@ const CommitteeReview = () => {
             const arr = Array.isArray(raw) ? raw : (raw?.providers || []);
             const mapped = arr.map((p: any, idx: number) => ({
                 id: p.id || p.application_id || p.app_id || `APP-${idx + 1}`,
+                providerId: p.providerId,
                 name: p.name || p.provider_name || 'Unknown',
                 specialty: p.specialty || p.speciality || '—',
                 market: p.market || p.location || '—',
@@ -585,7 +584,7 @@ const CommitteeReview = () => {
                         <Button variant="outline">Export</Button>
                     </div>
                     <div className="rounded-lg border p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="text-sm text-muted-foreground">Provider ID</label>
                                 <Input placeholder="e.g., 1001" value={draftFilters.providerId} onChange={(e) => handleDraftChange('providerId', e.target.value)} />
@@ -624,7 +623,7 @@ const CommitteeReview = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div>
+                            {/* <div>
                                 <label className="text-sm text-muted-foreground">Source</label>
                                 <Select value={draftFilters.source} onValueChange={(v) => handleDraftChange('source', v)}>
                                     <SelectTrigger>
@@ -636,18 +635,23 @@ const CommitteeReview = () => {
                                         <SelectItem value="PSV Fetched">PSV Fetched</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </div> */}
                             <div>
                                 <label className="text-sm text-muted-foreground">Assignee</label>
                                 <Input placeholder="Type a name" value={draftFilters.assignee} onChange={(e) => handleDraftChange('assignee', e.target.value)} />
                             </div>
-                            <div>
-                                <label className="text-sm text-muted-foreground">Progress min</label>
-                                <Input inputMode="numeric" placeholder="0" value={draftFilters.progressMin} onChange={(e) => handleDraftChange('progressMin', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-sm text-muted-foreground">Progress max</label>
-                                <Input inputMode="numeric" placeholder="100" value={draftFilters.progressMax} onChange={(e) => handleDraftChange('progressMax', e.target.value)} />
+                           <div>
+                                <label className="text-sm text-muted-foreground">Network Impact</label>
+                                <Select value={draftFilters.impact} onValueChange={(v) => handleDraftChange('impact', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">All</SelectItem>
+                                        <SelectItem value="Low">Low</SelectItem>
+                                        <SelectItem value="Medium">Medium</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                         <div className="mt-4 flex items-center justify-end gap-2">
@@ -669,6 +673,7 @@ const CommitteeReview = () => {
                                                 }}
                                             />
                                         </th>
+                                        <th className="px-3 py-2">Provider ID</th>
                                         <th className="px-3 py-2">Provider</th>
                                         <th className="px-3 py-2">Specialty</th>
                                         <th className="px-3 py-2">Market</th>
@@ -694,6 +699,7 @@ const CommitteeReview = () => {
                                                 <td className="px-3 py-2">
                                                     <Checkbox checked={isChecked} onCheckedChange={() => handleCheckboxClick(provider.id)} />
                                                 </td>
+                                                <td className="px-3 py-2">{provider.providerId}</td>
                                                 <td className="px-3 py-2">
                                                     <div className="flex flex-col">
                                                         <span className="font-medium">{provider.name}</span>
@@ -887,7 +893,7 @@ const CommitteeReview = () => {
                                                             {detailsDocsPsv.length === 0 && (
                                                                 <div className="text-sm text-muted-foreground">No PSV-fetched documents.</div>
                                                             )}
-                                                            {detailsDocsPsv.map((doc, idx) => {
+                                                            {detailsDocsPsv.filter(doc => String(doc?.fileType || '').toLowerCase() != 'npi').map((doc, idx) => {
                                                                 const isNpi = String(doc?.fileType || '').toLowerCase() === 'npi';
                                                                 return (
                                                                     <Card key={`p-${doc.fileType}-${idx}`}>

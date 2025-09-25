@@ -193,6 +193,10 @@ export default function ApplicationsPage() {
                         <CardDescription>Manage and review provider applications.</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                        {!showFilters && <Button variant="outline" size="sm" className="h-7 gap-1" onClick={() => { setFilters({ providerId: '', name: '', status: 'all', market: 'all', source: 'all', assignee: '', progressMin: '', progressMax: '' }); }}>
+                            {/* <ListFilter className="h-3.5 w-3.5" /> */}
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Clear Filters</span>
+                        </Button>}
                         <Button variant="outline" size="sm" className="h-7 gap-1" onClick={() => setShowFilters(v => !v)}>
                             <ListFilter className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filters</span>

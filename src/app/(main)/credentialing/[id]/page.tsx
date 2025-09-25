@@ -606,7 +606,7 @@ export default function CredentialingWorkflowPage() {
                                     <div>
                                         <div className="flex items-center gap-2 font-semibold text-lg">
                                             <Search className="h-5 w-5 text-primary" />
-                                            <h4>OCR/LLM Output</h4>
+                                            <h4>{isSanctions ? 'LLM Parser Output':'OCR/LLM Output'}</h4>
                                         </div>
                                         <div className="max-h-96 overflow-auto pr-2">
                                             <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} providerName={providerName} specialty={formData?.speciality || formData?.specialty} />

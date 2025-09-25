@@ -45,10 +45,10 @@ export default function CredentialingPage() {
     return apps.reduce((acc, app) => {
         if (app.status === 'Completed') acc.approved++;
         else if (app.status === 'Closed') acc.rejected++; // Assuming Closed means Rejected for this view
-        else if (['New', 'AI Read Complete', 'AI Read in Progress', 'In-Progress'].includes(app.status)) acc.inProgress++;
-        else if (app.status === 'Pending Review' || app.status === 'Needs Further Review') acc.pendingReview++;
+        else if (['New', 'AI Read Complete', 'AI Read in Progress', 'In-Progress', 'IN_PROGRESS'].includes(app.psvStatus)) acc.inProgress++;
+        else if (app.psvStatus === 'COMPLETED') acc.completed++;
         return acc;
-    }, { total: apps.length, approved: 0, rejected: 0, inProgress: 0, pendingReview: 0 });
+    }, { total: apps.length, approved: 0, rejected: 0, inProgress: 0, completed: 0 });
   };
 
   const counts = getStatusCounts(credentialingApps);
@@ -91,10 +91,10 @@ export default function CredentialingPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-normal">Pending Review</CardTitle>
+            <CardTitle className="text-base font-normal">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{counts.pendingReview}</p>
+            <p className="text-2xl font-bold">{counts.completed}</p>
           </CardContent>
         </Card>
       </div>
@@ -109,7 +109,7 @@ export default function CredentialingPage() {
               <TableRow>
                 <TableHead>Provider ID</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>App ID</TableHead>
+                {/* <TableHead>App ID</TableHead> */}
                 <TableHead>Credentialing Status</TableHead>
                 <TableHead><span className="sr-only">Action</span></TableHead>
               </TableRow>
@@ -119,7 +119,7 @@ export default function CredentialingPage() {
                 <TableRow key={app.id}>
                   <TableCell>{app.providerId}</TableCell>
                   <TableCell className="font-medium">{app.name}</TableCell>
-                  <TableCell>{app.id}</TableCell>
+                  {/* <TableCell>{app.id}</TableCell> */}
                   <TableCell><Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus}</Badge></TableCell>
                   <TableCell>
                     <Button asChild variant="outline" size="sm">
