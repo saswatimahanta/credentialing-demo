@@ -129,7 +129,7 @@ export default function AppHeader() {
               Communication
             </Link>
             <Link
-              href="/reports"
+              href="applications/reports"
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
               <LineChart className="h-5 w-5" />

@@ -57,6 +57,15 @@ import {
 import { useAuth } from '@/components/contexts/user-context';
 import mockDatabase from './mockDatabase';
 
+const submittedDocuments = [
+    { name: 'CV/Resume', type: 'PDF', size: '2.3 MB', status: 'complete' },
+    { name: 'Medical License', type: 'PDF', size: '1.1 MB', status: 'complete' },
+    { name: 'Board Certification', type: 'PDF', size: '890 KB', status: 'complete' },
+    { name: 'Malpractice Insurance', type: 'PDF', size: '1.5 MB', status: 'complete' },
+    { name: 'Education Transcripts', type: 'PDF', size: '3.2 MB', status: 'pending' },
+    { name: 'Reference Letters', type: 'PDF', size: '1.8 MB', status: 'complete' }
+]
+
 const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = 'analyst' }) => {
     const { user } = useAuth();
     const [tabValue, setTabValue] = useState(0);
@@ -499,14 +508,7 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                                 Submitted Documents
                             </Typography>
                             <Grid container spacing={2}>
-                                {[
-                                    { name: 'CV/Resume', type: 'PDF', size: '2.3 MB', status: 'complete' },
-                                    { name: 'Medical License', type: 'PDF', size: '1.1 MB', status: 'complete' },
-                                    { name: 'Board Certification', type: 'PDF', size: '890 KB', status: 'complete' },
-                                    { name: 'Malpractice Insurance', type: 'PDF', size: '1.5 MB', status: 'complete' },
-                                    { name: 'Education Transcripts', type: 'PDF', size: '3.2 MB', status: 'pending' },
-                                    { name: 'Reference Letters', type: 'PDF', size: '1.8 MB', status: 'complete' }
-                                ].map((doc, index) => (
+                                {submittedDocuments.map((doc, index) => (
                                     <Grid item xs={12} md={6} key={index}>
                                         <Card variant="outlined">
                                             <CardContent sx={{ p: 2 }}>
@@ -627,37 +629,41 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                             <Typography variant="h6" gutterBottom>
                                 Verification Results
                             </Typography>
-                            <Grid container spacing={2}>
+                            <Grid container alignItems="stretch" spacing={2}>
                                 {Object.entries(verificationResults).map(([key, result]) => (
-                                    <Grid item xs={12} md={6} key={key}>
-                                        <Card variant="outlined">
-                                            <CardContent>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                                    {getVerificationStatusIcon(result.status)}
-                                                    <Typography variant="h6" sx={{ ml: 1, textTransform: 'capitalize' }}>
-                                                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                                                    </Typography>
+                                    <Grid item xs={12} md={3} key={key} flex={1}>
+                                        <Card variant="outlined" sx={{height: '100%'}}>
+                                            <CardContent sx={{height: '100%'}}>
+                                                <Box display='flex' flexDirection='column' justifyContent='space-between' sx={{height: '100%'}}>
+                                                    <Box>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                                            {getVerificationStatusIcon(result.status)}
+                                                            <Typography variant="h6" sx={{ ml: 1, textTransform: 'capitalize' }}>
+                                                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                                                            Status: <strong>{result.status}</strong>
+                                                        </Typography>
+                                                        {result.lastChecked && (
+                                                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                                                Last Checked: {new Date(result.lastChecked).toLocaleDateString()}
+                                                            </Typography>
+                                                        )}
+                                                        {result.issues && (
+                                                            <Alert severity="warning" sx={{ mt: 1 }}>
+                                                                Issues: {result.issues.join(', ')}
+                                                            </Alert>
+                                                        )}
+                                                    </Box>
+                                                    <Button
+                                                        size="small"
+                                                        sx={{ mt: 1 }}
+                                                        variant="outlined"
+                                                    >
+                                                        Re-verify
+                                                    </Button>
                                                 </Box>
-                                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                    Status: <strong>{result.status}</strong>
-                                                </Typography>
-                                                {result.lastChecked && (
-                                                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                        Last Checked: {new Date(result.lastChecked).toLocaleDateString()}
-                                                    </Typography>
-                                                )}
-                                                {result.issues && (
-                                                    <Alert severity="warning" sx={{ mt: 1 }}>
-                                                        Issues: {result.issues.join(', ')}
-                                                    </Alert>
-                                                )}
-                                                <Button
-                                                    size="small"
-                                                    sx={{ mt: 1 }}
-                                                    variant="outlined"
-                                                >
-                                                    Re-verify
-                                                </Button>
                                             </CardContent>
                                         </Card>
                                     </Grid>
@@ -731,14 +737,14 @@ const ProviderDetailsDialog = ({ open, onClose, provider, onUpdate, userRole = '
                         >
                             Save Changes
                         </Button>
-                        <Button
+                        {/* <Button
                             variant="contained"
                             onClick={handleSendToCommittee}
                             startIcon={<SendIcon />}
                             color="primary"
                         >
                             Send to Committee
-                        </Button>
+                        </Button> */}
                     </>
                 )}
             </DialogActions>

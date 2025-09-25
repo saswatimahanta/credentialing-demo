@@ -24,20 +24,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default function CredentialingPage() {
   const [applications, setApplications] = useState([]);
   const [credentialingApps, setCredentialingApps] = useState([]);
-  
+
   useEffect(() => {
     async function loadData() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/applications`);
         setApplications(response.data);
 
-        const tempCredentialingApps = response.data.filter(app => ['New', 'AI Read Complete', 'AI Read in Progress', 'In-Progress', 'Needs Further Review', 'Completed', 'Pending Review'].includes(app.status));
+        const tempCredentialingApps = response.data.filter(app => ['New', 'AI Read Complete', 'AI Read in Progress', 'IN_PROGRESS', 'Needs Further Review', 'COMPLETED', 'Pending Review'].includes(app.psvStatus));
         setCredentialingApps(tempCredentialingApps);
       } catch (error) {
         console.error('Failed to fetch applications:', error);
       }
     }
-  
+
     loadData();
   }, []);
 
@@ -52,7 +52,7 @@ export default function CredentialingPage() {
   };
 
   const counts = getStatusCounts(credentialingApps);
-  
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight font-headline">Credentialing</h1>
@@ -120,7 +120,7 @@ export default function CredentialingPage() {
                   <TableCell>{app.providerId}</TableCell>
                   <TableCell className="font-medium">{app.name}</TableCell>
                   <TableCell>{app.id}</TableCell>
-                  <TableCell><Badge variant={statusVariant(app.status)}>{app.status}</Badge></TableCell>
+                  <TableCell><Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus}</Badge></TableCell>
                   <TableCell>
                     <Button asChild variant="outline" size="sm">
                       <Link href={`/credentialing/${app.id}`}>View Workflow</Link>

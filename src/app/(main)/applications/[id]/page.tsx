@@ -15,7 +15,7 @@ import mockApi from '@/lib/mock-data';
 import type { Application, AiIssue, TimelineEvent } from '@/lib/mock-data';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { smartAutoEmailGeneration } from '@/ai/flows/smart-auto-email-generation';
+// Removed AI flow import to avoid bundling Node-only deps in client
 // import { generateApproveModifyRejectSuggestions } from '@/ai/flows/generate-approve-modify-reject-suggestions';
 // import { summarizeApplicationData } from '@/ai/flows/application-data-summarization';
 import axios from 'axios';
@@ -23,6 +23,8 @@ import { useToast } from '@/hooks/use-toast';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DocumentPopup from '@/components/credentialing/DocumentPopup';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -41,6 +43,8 @@ export default function ApplicationDetailsPage() {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
   const [summary, setSummary] = useState({});
+  const [imagePath, setImagePath] = useState('');
+  const [showDocument, setShowDocument] = useState(false);
 
   const [suggestion, setSuggestion] = useState<{ suggestion: string, reasoning: string, confidenceScore: number } | null>(null);
 
@@ -50,6 +54,7 @@ export default function ApplicationDetailsPage() {
       try {
         if (!id) return;
         const response = await axios.get(`${API_BASE_URL}/api/applications/${id}`);
+        console.log('applications', response.data)
         setApplication(response.data);
 
         const issuesData = await axios.get(`${API_BASE_URL}/api/applications/aiissues/${id}`);
@@ -74,11 +79,13 @@ export default function ApplicationDetailsPage() {
 
   const handleGenerateEmail = async () => {
     if (!application) return;
-    const context = `Regarding your application (ID: ${application.id}), we need to discuss the following issues: ${aiIssues.map(i => i.issue).join(', ')}.`;
-    const result = await smartAutoEmailGeneration({ recipientType: 'provider', recipientName: application.name, subject: `Action Required for Application ${application.id}`, context });
-
-    const tempEmailDraft = result.emailDraft.replace('{{{applicationFormLink}}}', `http://localhost:9002/applications/intake/form?formId=${application.formId}`);
-    setEmailDraft(tempEmailDraft.replace(/\n/g, "<br>"));
+    const issuesList = aiIssues.length ? aiIssues.map(i => `- ${i.issue}`).join('\n') : '- No issues detected';
+    const body = `Hi ${application.name},\n\n` +
+      `Regarding your application (ID: ${application.id}), we need to discuss the following items:\n` +
+      `${issuesList}\n\n` +
+      `Please review your application form here: http://localhost:9002/applications/intake/form?formId=${application.formId}\n\n` +
+      `Best regards,\nCredentialing Team`;
+    setEmailDraft(body.replace(/\n/g, '<br>'));
     setIsEmailDialogOpen(true);
   }
 
@@ -151,25 +158,27 @@ export default function ApplicationDetailsPage() {
     setSuggestion(result);
   }
 
-  const handleDownload = async (type: String) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/documents/download?id=${id}&type=${type}`, {
-        method: 'GET',
-      });
+  const handleDownload = (fileName) => {
+    setImagePath(`/images/${fileName}.jpg`);
+    setShowDocument(true);
+    // try {
+    //   const response = await fetch(`${API_BASE_URL}/api/documents/download?id=${id}&type=${type}`, {
+    //     method: 'GET',
+    //   });
 
-      if (!response.ok) throw new Error('Failed to download');
+    //   if (!response.ok) throw new Error('Failed to download');
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+    //   const blob = await response.blob();
+    //   const url = window.URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${type.toUpperCase()}_${id}.pdf`; // dynamic filename
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
+    //   const a = document.createElement("a");
+    //   a.href = url;
+    //   a.download = `${type.toUpperCase()}_${id}.pdf`; // dynamic filename
+    //   a.click();
+    //   window.URL.revokeObjectURL(url);
+    // } catch (error) {
+    //   console.error("Download failed:", error);
+    // }
   };
 
 
@@ -200,12 +209,12 @@ export default function ApplicationDetailsPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Application Details: {application.name} ({application.id})</CardTitle>
+              <CardTitle>Application Details: {application.provider.providerName}</CardTitle>
               <CardDescription>Review submitted information and attached documents.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="font-semibold">Provider ID:</span> {application.providerId}</div>
+                <div><span className="font-semibold">Provider ID:</span> {application.provider.providerId}</div>
                 <div><span className="font-semibold">NPI:</span> {application.npi}</div>
                 <div><span className="font-semibold">Specialty:</span> {application.specialty}</div>
                 <div><span className="font-semibold">Market:</span> {application.market}</div>
@@ -215,12 +224,15 @@ export default function ApplicationDetailsPage() {
               <h3 className="font-semibold text-lg font-headline">Submitted Documents</h3>
               <div className="flex flex-wrap gap-4">
                 <Button variant="outline" onClick={() => handleDownload("MEDICAL_TRAINING_CERTIFICATE")} ><FileText className="mr-2" /> Medical Training Certificate</Button>
-                <Button variant="outline" onClick={() => handleDownload("cv")} ><FileText className="mr-2" /> CV/Resume</Button>
+                <Button variant="outline" onClick={() => handleDownload("CV")} ><FileText className="mr-2" /> CV/Resume</Button>
                 <Button variant="outline" onClick={() => handleDownload("coi")} ><FileText className="mr-2" /> Certificate of Insurance</Button>
                 <Button variant="outline" onClick={() => handleDownload("dea")} ><FileText className="mr-2" /> DEA/CDS Certificate</Button>
               </div>
+
             </CardContent>
           </Card>
+          <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
+
 
           <Card>
             <CardHeader>

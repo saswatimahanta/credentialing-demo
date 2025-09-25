@@ -12,16 +12,19 @@ import { TrendingUp } from 'lucide-react';
 import { Box, Typography } from '@mui/material';
 import mockDatabase from '../committee-review/mockDatabase';
 
-export function SpecialtyChart() {
+export function SpecialtyChart({ data, market }) {
+  console.log('data', data)
   // Static proposed counts out of 250 total as per requirements
   const total = 250;
-  const data = [
-    { status: 'In Progress', count: 75 },
-    { status: 'Committee Review', count: 62 },
-    { status: 'Approved', count: 50 },
-    { status: 'Initiated', count: 38 },
-    { status: 'Denied', count: 25 }
+
+  const allData = [
+    { status: 'In Progress', count: 75, percentage: 30.0 },
+    { status: 'Committee Review', count: 62, percentage: 24.8  },
+    { status: 'Approved', count: 50, percentage: 20.0  },
+    { status: 'Initiated', count: 38, percentage: 15.2  },
+    { status: 'Denied', count: 25, percentage: 10.0  }
   ];
+  const dataToDisplay = market === 'ca' ? data : allData
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -35,13 +38,18 @@ export function SpecialtyChart() {
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '300px' }}>
-              {data.map(({ status, count }) => {
-                const percentage = (count / total) * 100;
+              {dataToDisplay.map(({ status, count, percentage }) => {
+                // const percentage = (count / total) * 100;
                 const colors = {
-                  'Initiated': '#2196f3',
-                  'In Progress': '#ff9800',
-                  'Committee Review': '#9c27b0',
-                  'Approved': '#4caf50',
+                  'Internal Medicine': '#2196f3',
+                  'Pediatrics': '#ff9800',
+                  'Psychologist': '#9c27b0',
+                  'Cardiovascular Disease': '#4caf50',
+                  'Obstetrics & Gynecology': '#f44336',
+                  'In Progress': '#2196f3',
+                  'Committee Review': '#ff9800',
+                  'Approved': '#9c27b0',
+                  'Initiated': '#4caf50',
                   'Denied': '#f44336'
                 } as Record<string, string>;
 

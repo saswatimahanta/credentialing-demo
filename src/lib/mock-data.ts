@@ -69,7 +69,7 @@ export interface Email {
 
 
 export interface Report {
-    name:string;
+    name: string;
     date: string;
     type: 'PDF' | 'Excel';
 }
@@ -90,9 +90,9 @@ const applications: Application[] = [
 
 const aiIssues: Record<string, AiIssue[]> = {
     'APP-002': [
-      { field: 'Address', issue: 'ZIP code mismatch with state.', confidence: 0.95, value: '90210', reasoning: 'The ZIP code 90210 belongs to California, which matches the provided state. However, cross-referencing with USPS database suggests a potential discrepancy in the street address format.' },
-      { field: 'NPI', issue: 'NPI number not found in national registry.', confidence: 0.82, value: '0987654321', reasoning: 'The NPI provided did not return a valid result from the NPPES NPI Registry. This could be a typo or an inactive NPI.' },
-      { field: 'CV/Resume', issue: 'Gap in employment history (3 months).', confidence: 0.65, value: 'Missing: Jan 2020 - Mar 2020', reasoning: 'A 3-month gap was detected between two listed employment periods. This may require clarification from the provider.' },
+        { field: 'Address', issue: 'ZIP code mismatch with state.', confidence: 0.95, value: '90210', reasoning: 'The ZIP code 90210 belongs to California, which matches the provided state. However, cross-referencing with USPS database suggests a potential discrepancy in the street address format.' },
+        { field: 'NPI', issue: 'NPI number not found in national registry.', confidence: 0.82, value: '0987654321', reasoning: 'The NPI provided did not return a valid result from the NPPES NPI Registry. This could be a typo or an inactive NPI.' },
+        { field: 'CV/Resume', issue: 'Gap in employment history (3 months).', confidence: 0.65, value: 'Missing: Jan 2020 - Mar 2020', reasoning: 'A 3-month gap was detected between two listed employment periods. This may require clarification from the provider.' },
     ],
     'default': [
         { field: 'Address', issue: 'ZIP code mismatch with state.', confidence: 0.95, value: '90210', reasoning: 'The ZIP code 90210 belongs to California, which matches the provided state. However, cross-referencing with USPS database suggests a potential discrepancy in the street address format.' },
@@ -110,146 +110,148 @@ const timelines: Record<string, TimelineEvent[]> = {
     ]
 };
 const documentsStatus: Record<string, DocumentStatus[]> = {
-  'default': [
-    {
-      fileType: "npi",
-      status: "Verified",
-      progress: 100,
-      ocrData: {
-        npi: "1093382830",
-        npi_confident_score: 1.0,
-        "Enumeration Date": "2021-06-09",
-        Enumeration_Date_confident_score: 1.0,
-        Status: "Active",
-        Status_confident_score: 1.0,
-        "Primary Practice Address":
-          "1277 KELLY JOHNSON BLVD STE 160 COLORADO SPRINGS, CO 80920-3992",
-        Primary_Practice_Address_confident_score: 1.0,
-      },
-      pdfMatch: {
-        match: true,
-        reason:
-          "Both documents have a similar layout with key fields like Name, NPI, Mailing Address, and Primary/Secondary Practice Addresses positioned consistently.",
-        confidance_score: 0.85,
-      },
-    },
-    {
-      fileType: "degree",
-      status: "Pending",
-      progress: 50,
-      ocrData: {
-        type: "MD",
-        type_confident_score: 1.0,
-        issueDate: "2010-05-20",
-        issueDate_confident_score: 1.0,
-        institution: "Stanford University",
-        institution_confident_score: 1.0,
-        confidence: { type: 92, number: 0, issueDate: 88, expiryDate: 0 },
-      },
-    },
-    { fileType: "cv/resume", status: "Pending", progress: 25,
-        pdfMatch: {
-            match: false,
-            reason:"",
-            confidance_score: 0.92,
+    'default': [
+        {
+            fileType: "npi",
+            status: "Verified",
+            progress: 100,
+            ocrData: {
+                npi: "1093382830",
+                npi_confident_score: 1.0,
+                "Enumeration Date": "2021-06-09",
+                Enumeration_Date_confident_score: 1.0,
+                Status: "Active",
+                Status_confident_score: 1.0,
+                "Primary Practice Address":
+                    "1277 KELLY JOHNSON BLVD STE 160 COLORADO SPRINGS, CO 80920-3992",
+                Primary_Practice_Address_confident_score: 1.0,
+            },
+            pdfMatch: {
+                match: true,
+                reason:
+                    "Both documents have a similar layout with key fields like Name, NPI, Mailing Address, and Primary/Secondary Practice Addresses positioned consistently.",
+                confidance_score: 0.85,
+            },
         },
-    },
-    {
-      fileType: "dl",
-      status: "Flagged",
-      progress: 75,
-      ocrData: {
-        fn: "Tom",
-        fn_confident_score: 1.0,
-        dl: "OL11231L",
-        dl_confident_score: 1.0,
-        ln: "Jerry",
-        ln_confident_score: 1.0,
-        class: "C",
-        class_confident_score: 1.0,
-        dob: "08/20/1989",
-        dob_confident_score: 1.0,
-        sex: "F",
-        sex_confident_score: 1.0,
-        hair: "BLK",
-        hair_confident_score: 1.0,
-        eyes: "BLK",
-        eyes_confident_score: 1.0,
-        hgt: "5-10",
-        hgt_confident_score: 1.0,
-        wgt: "140 lb",
-        wgt_confident_score: 1.0,
-        exp: "08/31/2025",
-        exp_confident_score: 1.0,
-      },
-      pdfMatch: {
-        match: true,
-        reason:
-          "DL fields such as name, date of birth, and class are present and aligned with standard DL layout.",
-        confidance_score: 0.92,
-      },
-    },
-    { fileType: "passport", status: "Verified", progress: 100,
-        ocrData: {
-            fn: "Tom",
-            fn_confident_score: 1.0,
-            dl: "OL11231L",
-            dl_confident_score: 1.0,
-            ln: "Jerry",
-            ln_confident_score: 1.0,
-          },
-     },
-  ],
+        {
+            fileType: "degree",
+            status: "Pending",
+            progress: 50,
+            ocrData: {
+                type: "MD",
+                type_confident_score: 1.0,
+                issueDate: "2010-05-20",
+                issueDate_confident_score: 1.0,
+                institution: "Stanford University",
+                institution_confident_score: 1.0,
+                confidence: { type: 92, number: 0, issueDate: 88, expiryDate: 0 },
+            },
+        },
+        {
+            fileType: "cv/resume", status: "Pending", progress: 25,
+            pdfMatch: {
+                match: false,
+                reason: "",
+                confidance_score: 0.92,
+            },
+        },
+        {
+            fileType: "dl",
+            status: "Flagged",
+            progress: 75,
+            ocrData: {
+                fn: "Tom",
+                fn_confident_score: 1.0,
+                dl: "OL11231L",
+                dl_confident_score: 1.0,
+                ln: "Jerry",
+                ln_confident_score: 1.0,
+                class: "C",
+                class_confident_score: 1.0,
+                dob: "08/20/1989",
+                dob_confident_score: 1.0,
+                sex: "F",
+                sex_confident_score: 1.0,
+                hair: "BLK",
+                hair_confident_score: 1.0,
+                eyes: "BLK",
+                eyes_confident_score: 1.0,
+                hgt: "5-10",
+                hgt_confident_score: 1.0,
+                wgt: "140 lb",
+                wgt_confident_score: 1.0,
+                exp: "08/31/2025",
+                exp_confident_score: 1.0,
+            },
+            pdfMatch: {
+                match: true,
+                reason:
+                    "DL fields such as name, date of birth, and class are present and aligned with standard DL layout.",
+                confidance_score: 0.92,
+            },
+        },
+        {
+            fileType: "passport", status: "Verified", progress: 100,
+            ocrData: {
+                fn: "Tom",
+                fn_confident_score: 1.0,
+                dl: "OL11231L",
+                dl_confident_score: 1.0,
+                ln: "Jerry",
+                ln_confident_score: 1.0,
+            },
+        },
+    ],
 };
 
 
 const verificationCentres = {
-  "ml": [
-    { name: "CA Medical Board", state: "CA", address: "2005 Evergreen St, Sacramento, CA 95815", email: "verify@mbc.ca.gov", type: "State Board" },
-    { name: "NY State Education Dept", state: "NY", address: "89 Washington Ave, Albany, NY 12234", email: "opverify@nysed.gov", type: "State Dept" },
-    { name: "TX Medical Board", state: "TX", address: "1801 Congress Ave, Austin, TX 78701", email: "verifications@tmb.state.tx.us", type: "State Board" },
-  ],
-  "degree": [
-      { name: "ECFMG (International)", state: "PA", address: "3624 Market St, Philadelphia, PA 19104", email: "verify@ecfmg.org", type: "Non-profit" },
-      { name: "FCVS (FSMB)", state: "TX", address: "400 Fuller Wiser Rd, Euless, TX 76039", email: "fcvs@fsmb.org", type: "Non-profit" },
-      { name: "Stanford University Registrar", state: "CA", address: "459 Lagunita Drive, Stanford, CA 94305", email: "registrar@stanford.edu", type: "University" },
-  ],
-  "npi": [
-      { name: "NPPES (CMS)", state: "Federal", address: "7500 Security Blvd, Baltimore, MD 21244", email: "npi@cms.hhs.gov", type: "Federal Agency" },
-  ],
-  "passport": [
-      { name: "National Passport Info Center", state: "Federal", address: "1111 19th St NW, Washington, DC 20036", email: "npic@state.gov", type: "Federal Agency" },
-  ],
-  "malpractice-history": [
-      { name: "National Practitioner Data Bank", state: "Federal", address: "P.O. Box 10828, Chantilly, VA 20153", email: "help@npdb.hrsa.gov", type: "Federal Agency" },
-  ],
-  "dl": [
-    { name: "California DMV", state: "CA", address: "2415 1st Ave, Sacramento, CA 95818", email: "records@dmv.ca.gov", type: "DMV" },
-    { name: "New York DMV", state: "NY", address: "6 Empire State Plaza, Albany, NY 12228", email: "verify@dmv.ny.gov", type: "DMV" },
-  ],
-  "dea": [
-    { name: "Drug Enforcement Administration", state: "Federal", address: "8701 Morrissette Dr, Springfield, VA 22152", email: "verification@dea.gov", type: "Federal Agency" },
-  ],
-  "cv/resume": [
-    { name: "General Hospital HR", state: "CA", address: "123 Health St, Medville, CA 90210", email: "hr@generalhospital.com", type: "Employer" },
-  ]
+    // "ml": [
+    //     { name: "CA Medical Board", state: "CA", address: "2005 Evergreen St, Sacramento, CA 95815", email: "verify@mbc.ca.gov", type: "State Board" },
+    //     { name: "NY State Education Dept", state: "NY", address: "89 Washington Ave, Albany, NY 12234", email: "opverify@nysed.gov", type: "State Dept" },
+    //     { name: "TX Medical Board", state: "TX", address: "1801 Congress Ave, Austin, TX 78701", email: "verifications@tmb.state.tx.us", type: "State Board" },
+    // ],
+    "medical-training": [
+        { name: "ECFMG (International)", state: "PA", address: "3624 Market St, Philadelphia, PA 19104", email: "verify@ecfmg.org", type: "Non-profit" },
+        { name: "FCVS (FSMB)", state: "TX", address: "400 Fuller Wiser Rd, Euless, TX 76039", email: "fcvs@fsmb.org", type: "Non-profit" },
+        { name: "Stanford University Registrar", state: "CA", address: "459 Lagunita Drive, Stanford, CA 94305", email: "registrar@stanford.edu", type: "University" },
+    ],
+    // "npi": [
+    //     { name: "NPPES (CMS)", state: "Federal", address: "7500 Security Blvd, Baltimore, MD 21244", email: "npi@cms.hhs.gov", type: "Federal Agency" },
+    // ],
+    "passport": [
+        { name: "National Passport Info Center", state: "Federal", address: "1111 19th St NW, Washington, DC 20036", email: "npic@state.gov", type: "Federal Agency" },
+    ],
+    "malpractice-history": [
+        { name: "National Practitioner Data Bank", state: "Federal", address: "P.O. Box 10828, Chantilly, VA 20153", email: "help@npdb.hrsa.gov", type: "Federal Agency" },
+    ],
+    "dl": [
+        { name: "California DMV", state: "CA", address: "2415 1st Ave, Sacramento, CA 95818", email: "records@dmv.ca.gov", type: "DMV" },
+        { name: "New York DMV", state: "NY", address: "6 Empire State Plaza, Albany, NY 12228", email: "verify@dmv.ny.gov", type: "DMV" },
+    ],
+    //   "dea": [
+    //     { name: "Drug Enforcement Administration", state: "Federal", address: "8701 Morrissette Dr, Springfield, VA 22152", email: "verification@dea.gov", type: "Federal Agency" },
+    //   ],
+    "cv/resume": [
+        { name: "General Hospital HR", state: "CA", address: "123 Health St, Medville, CA 90210", email: "hr@generalhospital.com", type: "Employer" },
+    ]
 };
 
 const allVerificationCentresList: VerificationCentre[] = Object.values(verificationCentres).flat();
 
 
 const providersByOrg: Record<string, string[]> = {
-  "CA Medical Board": ["Dr. John Smith", "Dr. Emily White", "Dr. Robert King", "Dr. Kevin Lee"],
-  "NY State Education Dept": ["Dr. Michael Brown", "Dr. Linda Martinez", "Dr. James Lee"],
-  "TX Medical Board": ["Dr. Sarah Miller", "Dr. Karen Hall"],
-  "California DMV": ["Dr. Tom Jerry"],
-  "Drug Enforcement Administration": ["Dr. Jessica Garcia"],
-  "ECFMG (International)": ["Dr. Emily White"],
-  "FCVS (FSMB)": ["Dr. John Smith", "Dr. Michael Brown"],
-  "NPPES (CMS)": ["Dr. Tom Jerry", "Dr. Linda Martinez"],
-  "National Passport Info Center": ["Dr. Sarah Miller"],
-  "National Practitioner Data Bank": ["Dr. David Wilson", "Dr. Jessica Garcia"],
-  "New York DMV": ["Dr. Steven Young"]
+    "CA Medical Board": ["Dr. John Smith", "Dr. Emily White", "Dr. Robert King", "Dr. Kevin Lee"],
+    "NY State Education Dept": ["Dr. Michael Brown", "Dr. Linda Martinez", "Dr. James Lee"],
+    "TX Medical Board": ["Dr. Sarah Miller", "Dr. Karen Hall"],
+    "California DMV": ["Dr. Tom Jerry"],
+    "Drug Enforcement Administration": ["Dr. Jessica Garcia"],
+    "ECFMG (International)": ["Dr. Emily White"],
+    "FCVS (FSMB)": ["Dr. John Smith", "Dr. Michael Brown"],
+    "NPPES (CMS)": ["Dr. Tom Jerry", "Dr. Linda Martinez"],
+    "National Passport Info Center": ["Dr. Sarah Miller"],
+    "National Practitioner Data Bank": ["Dr. David Wilson", "Dr. Jessica Garcia"],
+    "New York DMV": ["Dr. Steven Young"]
 };
 
 
@@ -280,11 +282,11 @@ const recentReports: Report[] = [
 
 
 export const kpiData = {
-    totalApplications: { value: '1,250', change: '+15.2%', label: 'Total Applications', trend: [{month: 'Jan', value: 100}, {month: 'Feb', value: 120}, {month: 'Mar', value: 150}, {month: 'Apr', value: 130}, {month: 'May', value: 180}, {month: 'Jun', value: 200}] },
-    completed: { value: '890', change: '+10.1%', label: 'Completed', trend: [{month: 'Jan', value: 70}, {month: 'Feb', value: 80}, {month: 'Mar', value: 90}, {month: 'Apr', value: 85}, {month: 'May', value: 100}, {month: 'Jun', value: 110}] },
-    inProgress: { value: '250', change: '+5.5%', label: 'In-Progress', trend: [{month: 'Jan', value: 20}, {month: 'Feb', value: 25}, {month: 'Mar', value: 30}, {month: 'Apr', value: 28}, {month: 'May', value: 40}, {month: 'Jun', value: 45}] },
-    notStarted: { value: '95', change: '-2.0%', label: 'Not Started', trend: [{month: 'Jan', value: 10}, {month: 'Feb', value: 12}, {month: 'Mar', value: 15}, {month: 'Apr', value: 13}, {month: 'May', value: 20}, {month: 'Jun', value: 25}] },
-    needsReview: { value: '15', change: '+25%', label: 'Needs Further Review', trend: [{month: 'Jan', value: 1}, {month: 'Feb', value: 2}, {month: 'Mar', value: 4}, {month: 'Apr', value: 3}, {month: 'May', value: 5}, {month: 'Jun', value: 6}] },
+    totalApplications: { value: '1,250', change: '+15.2%', label: 'Total Applications', trend: [{ month: 'Jan', value: 100 }, { month: 'Feb', value: 120 }, { month: 'Mar', value: 150 }, { month: 'Apr', value: 130 }, { month: 'May', value: 180 }, { month: 'Jun', value: 200 }] },
+    completed: { value: '890', change: '+10.1%', label: 'Completed', trend: [{ month: 'Jan', value: 70 }, { month: 'Feb', value: 80 }, { month: 'Mar', value: 90 }, { month: 'Apr', value: 85 }, { month: 'May', value: 100 }, { month: 'Jun', value: 110 }] },
+    inProgress: { value: '250', change: '+5.5%', label: 'In-Progress', trend: [{ month: 'Jan', value: 20 }, { month: 'Feb', value: 25 }, { month: 'Mar', value: 30 }, { month: 'Apr', value: 28 }, { month: 'May', value: 40 }, { month: 'Jun', value: 45 }] },
+    notStarted: { value: '95', change: '-2.0%', label: 'Not Started', trend: [{ month: 'Jan', value: 10 }, { month: 'Feb', value: 12 }, { month: 'Mar', value: 15 }, { month: 'Apr', value: 13 }, { month: 'May', value: 20 }, { month: 'Jun', value: 25 }] },
+    needsReview: { value: '15', change: '+25%', label: 'Needs Further Review', trend: [{ month: 'Jan', value: 1 }, { month: 'Feb', value: 2 }, { month: 'Mar', value: 4 }, { month: 'Apr', value: 3 }, { month: 'May', value: 5 }, { month: 'Jun', value: 6 }] },
 };
 
 export const donutChartData = [
@@ -292,7 +294,7 @@ export const donutChartData = [
     { name: 'Rejected', value: 110 },
     { name: 'Pending Review', value: 250 },
     { name: 'In-Progress', value: 95 },
-  ];
+];
 
 export const barChartData = [
     { month: 'Jan', avgTime: 22 },
@@ -304,10 +306,10 @@ export const barChartData = [
 ];
 
 export const summaryTiles = [
-  { title: 'Providers Awaiting Action', value: '5', icon: Users, items: [] },
-  { title: 'Payers Awaiting Action', value: '4', icon: HandPlatter, items: [] },
-  { title: 'Verification Centres Awaiting Action', value: '5', icon: Building, items: [] },
-  { title: 'Follow-up / Reminder Pending', value: '3', icon: Mail, items: [] },
+    { title: 'Providers Awaiting Action', value: '5', icon: Users, items: [] },
+    { title: 'Payers Awaiting Action', value: '4', icon: HandPlatter, items: [] },
+    { title: 'Verification Centres Awaiting Action', value: '5', icon: Building, items: [] },
+    { title: 'Follow-up / Reminder Pending', value: '3', icon: Mail, items: [] },
 ];
 
 // Simulate API calls
@@ -359,7 +361,7 @@ const api = {
                 unread: email.unread
             }));
         }
-        return new Promise(resolve => resolve(selectedEmail)); 
+        return new Promise(resolve => resolve(selectedEmail));
     },
     getRecentReports: async (): Promise<Report[]> => {
         return new Promise(resolve => resolve(recentReports));

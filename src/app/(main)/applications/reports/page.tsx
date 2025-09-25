@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, History } from "lucide-react";
+import { ArrowLeft, FileDown, History } from "lucide-react";
 import mockApi from "@/lib/mock-data";
+import Link from "next/link";
 
 
 const reportFields = [
@@ -20,8 +21,10 @@ export default async function ReportsPage() {
   return (
     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
+        <Button asChild variant="ghost" className="px-0">
+          <Link href="/applications"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
+        </Button>
         <h1 className="text-2xl font-bold tracking-tight font-headline">Reports</h1>
-        
         <Card>
           <CardHeader>
             <CardTitle>Generate New Report</CardTitle>

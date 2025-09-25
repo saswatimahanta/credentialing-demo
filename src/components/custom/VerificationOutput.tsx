@@ -2,7 +2,7 @@ import { oc } from "date-fns/locale";
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { useState } from "react";
 
-export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; ocrData: any, type: string; }) => {
+export const VerificationOutput = ({ pdfData, ocrData, type, verificationDetails, }: { pdfData: any; ocrData: any; type: string; verificationDetails?: any; }) => {
   if (!pdfData) {
     return (
       <div className="text-sm text-muted-foreground p-3 rounded-md bg-muted">
@@ -26,8 +26,7 @@ export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; 
   if (type === "npi") {
     return (
       <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-        <PdfMatch data={pdfData} />
-        <NPIMatch data={ocrData} />
+        <NPPESVerification details={verificationDetails} />
       </div>
     );
   }
@@ -85,14 +84,53 @@ export const VerificationOutput = ({ pdfData, ocrData, type, }: { pdfData: any; 
           <CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />
           <span>License Number Match</span>
         </div>
+        {verificationDetails && (
+          <div className="mt-2 text-muted-foreground border-l-2 pl-3 border-gray-300 space-y-1">
+            {verificationDetails.license_number_match && (
+              <div><strong>License Number Match:</strong> {String(verificationDetails.license_number_match)}</div>
+            )}
+            {verificationDetails.provider_name_match && (
+              <div><strong>Provider Name:</strong> {String(verificationDetails.provider_name_match)}</div>
+            )}
+            {verificationDetails.comment_1 && (
+              <div><strong>Comment 1:</strong> {verificationDetails.comment_1}</div>
+            )}
+            {verificationDetails.comment_2 && (
+              <div><strong>Comment 2:</strong> {verificationDetails.comment_2}</div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
+
+  if (type === "DEA") {
+    const status = verificationDetails?.dea_verification;
+    return (
+      <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+        <PdfMatch data={pdfData} />
+        {status && (
+          <div className="flex items-start gap-2 text-green-600">
+            <CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <span>DEA Verification: {String(status)}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default: show PDF match block for other types
+  return (
+    <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+      <PdfMatch data={pdfData} />
+    </div>
+  );
 };
 
 const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolean }) => {
   const [expanded, setExpanded] = useState(false);
-  const match = data?.match;
+  const rawMatch = data?.match;
+  const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
   const reason = data?.reason || "No reason provided.";
   const isGreen = forceGreen || match;
   return (
@@ -155,6 +193,25 @@ const NPIMatch = ({ data }: { data: any }) => {
     </div>
   </div>)
 }
+
+const NPPESVerification = ({ details }: { details?: any }) => {
+  const comment = details?.comment;
+  return (
+    <div className={`flex items-start gap-2 text-green-600`}>
+      <CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />
+      <div className="flex-1">
+        <div className="flex justify-between items-start">
+          <span>Verified with NPPES API</span>
+        </div>
+        {comment && (
+          <div className="mt-2 text-muted-foreground border-l-2 pl-3 border-gray-300">
+            {comment}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const OutreachMatch = () => {
   return (
