@@ -20,7 +20,6 @@ const statusVariant = (status: string): "default" | "secondary" | "destructive" 
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 export default function CredentialingPage() {
   const [applications, setApplications] = useState([]);
   const [credentialingApps, setCredentialingApps] = useState([]);

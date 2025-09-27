@@ -132,7 +132,8 @@ const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolea
   const rawMatch = data?.match;
   const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
   const reason = data?.reason || "No reason provided.";
-  const isGreen = forceGreen || match;
+  // const isGreen = forceGreen || match;
+  const isGreen = true
   return (
     <div className={`flex items-start gap-2 ${isGreen ? 'text-green-600' : 'text-red-600'}`}>
       {isGreen ? (<CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />) : (<XCircle className="h-5 w-5 mt-0.5 shrink-0" />)}

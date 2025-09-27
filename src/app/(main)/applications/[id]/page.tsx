@@ -159,26 +159,14 @@ export default function ApplicationDetailsPage() {
   }
 
   const handleDownload = (fileName) => {
-    setImagePath(`/images/${fileName}.jpg`);
+    if (application?.provider?.providerName === 'Roger Tran') {
+      setImagePath(`/images/${application?.provider?.providerName}_${fileName}.png`)
+    }else if (application?.provider?.providerName === 'Ahmed Alsadek') {
+      setImagePath(`/images/${application?.provider?.providerName}_${fileName}.png`)
+    } else {
+      setImagePath(`/images/${fileName}.jpg`);
+    }
     setShowDocument(true);
-    // try {
-    //   const response = await fetch(`${API_BASE_URL}/api/documents/download?id=${id}&type=${type}`, {
-    //     method: 'GET',
-    //   });
-
-    //   if (!response.ok) throw new Error('Failed to download');
-
-    //   const blob = await response.blob();
-    //   const url = window.URL.createObjectURL(blob);
-
-    //   const a = document.createElement("a");
-    //   a.href = url;
-    //   a.download = `${type.toUpperCase()}_${id}.pdf`; // dynamic filename
-    //   a.click();
-    //   window.URL.revokeObjectURL(url);
-    // } catch (error) {
-    //   console.error("Download failed:", error);
-    // }
   };
 
 

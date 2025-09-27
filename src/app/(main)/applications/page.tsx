@@ -68,15 +68,26 @@ export default function ApplicationsPage() {
     });
     const [sortBy, setSortBy] = useState<keyof AppItem | null>(null);
     const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(null);
-
+    const [bulkUpload, setBulkUpload] = useState(false);
     const loadApplications = async () => {
         try {
             const response = await axios.get(`${API_BASE_URL}/api/applications`);
-            console.log('this', response.data)
             let data: AppItem[] = response.data;
             // Hide APP-1073 until roster intake completed
             if (!rosterCompleted) {
                 data = data.filter(a => a.id !== 'APP-1073');
+            }
+            const excludedProviders = ["Roger Tran", "Ahmed Alsadek"];
+            const excludedApps = data.filter(app =>
+                excludedProviders.includes(app.name)
+            );
+            const otherApps = data.filter(
+                app => !excludedProviders.includes(app.name)
+            );
+            if (bulkUpload) {
+                data = [...excludedApps, ...otherApps];
+            } else {
+                data = otherApps;
             }
             setApplications(data);
         } catch (error) {
@@ -86,7 +97,7 @@ export default function ApplicationsPage() {
 
     useEffect(() => {
         loadApplications();
-    }, [rosterCompleted]);
+    }, [rosterCompleted, bulkUpload]);
 
     const handleIntakeModalChange = (open: boolean) => {
         setShowIntakeModal(open);
@@ -182,7 +193,8 @@ export default function ApplicationsPage() {
                     <VisuallyHidden>
                         <DialogTitle>Hidden but accessible title</DialogTitle>
                     </VisuallyHidden>
-                    <ApplicationIntake onRosterIntakeComplete={() => { setRosterCompleted(true); }} />
+                    <ApplicationIntake onRosterIntakeComplete={() => { setRosterCompleted(true); }}
+                    onBulkDocumentIntakeComplete={()=>{setBulkUpload(true)}}/>
                 </DialogContent>
             </Dialog>
 

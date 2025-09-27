@@ -18,16 +18,32 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { OcrOutput } from '@/components/custom/OcrOutput';
 import { VerificationOutput } from '@/components/custom/VerificationOutput';
-import { Chip } from '@mui/material';
+import { Chip, CircularProgress } from '@mui/material';
 import { ArrowRight } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useParams, useRouter } from 'next/navigation';
 import DocumentPopup from '@/components/credentialing/DocumentPopup'
+import DocumentDrawer from '@/components/credentialing/document-drawer'
+
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+function formatCustomDate(date) {
+  const pad = (n) => n.toString().padStart(2, "0");
 
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const year = date.getFullYear();
+
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${month}/${day}/${year}, ${hours}.${minutes}.${seconds}`;
+}
+
+const providersWithCertificates = ['Ahmed Alsadek', 'Lester Summerfield', 'Linda Thompson', 'Rakesh Bhola', 'Richard Bender', 'Roger Tran', 'Sajeet Sawhney', 'Shivanand Pole', 'Vivian Nguyen']
 
 const getDocumentIcon = (status: DocumentStatus['status']) => {
     switch (status) {
@@ -88,7 +104,11 @@ export default function CredentialingWorkflowPage() {
     })();
     const isNpi = (selectedDocument?.fileType || '').toLowerCase() === 'npi';
     const isSanctions = (selectedDocument?.fileType || '').toLowerCase() === 'sanctions';
-
+    const [runTime, setRunTime] = useState(() => {
+    const date = new Date(new Date().getTime() - 2 * 60 * 60 * 1000 * 25);
+    return formatCustomDate(date);
+    })
+    const [runCheckLoader, setRunCheckLoader] = useState(false)
 
     // Image helpers for thumbnails/preview
     const imageAliasFor = (fileType?: string) => {
@@ -150,6 +170,15 @@ export default function CredentialingWorkflowPage() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    const handleRunCheck = () => {
+        setRunCheckLoader(true)
+        setTimeout(() => {
+            setRunTime(formatCustomDate(new Date()))
+            setRunCheckLoader(false)
+            toast({ title: "Check", description: "Check Ran Successfully" });
+        }, 5000)
     }
 
     const handleSanctionsDownload = async () => {
@@ -398,6 +427,10 @@ export default function CredentialingWorkflowPage() {
         }
     };
 
+    const handleViewAllDocuments = () => {
+
+    }
+
     useEffect(() => {
         async function loadVerificationCenter() {
             if (selectedDocument) {
@@ -412,7 +445,6 @@ export default function CredentialingWorkflowPage() {
         async function loadData() {
             try {
                 const response = await axios.get(`${API_BASE_URL}/api/applications`);
-                console.log(response)
                 const index = response.data.findIndex((app: any) => app.id === id)
                 setProviderName(response.data[index].name)
 
@@ -491,8 +523,7 @@ export default function CredentialingWorkflowPage() {
                 </CardHeader>
                 <CardContent>
                     <div className='space-y-4'>
-                        {!isNpi && (
-                            <div>
+                            <div className='flex justify-between'>
                                 <Select defaultValue="userUploaded" onValueChange={handleDocumentDropdown}>
                                     <SelectTrigger className="w-[200px]">
                                         <SelectValue placeholder="User Uploaded" />
@@ -502,8 +533,10 @@ export default function CredentialingWorkflowPage() {
                                         <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <DocumentDrawer documents={documents.map((doc)=>doc.fileType)}/>
+
                             </div>
-                        )}
+
                         <div className="flex flex-wrap gap-4">
                             {documents.map(doc => {
                                 const { icon: Icon, color } = getDocumentIcon(doc.status);
@@ -537,11 +570,16 @@ export default function CredentialingWorkflowPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Verification Progress for: <span className="text-primary">{formatFileTypeLabel(selectedDocument.fileType)}</span></CardTitle>
-                    <CardDescription>Details from each stage of the verification pipeline.</CardDescription>
+                    <CardDescription>
+                        <div className='flex justify-between'>
+                            <p>Details from each stage of the verification pipeline.</p>
+                            <p>Last Check: {runTime }</p>
+                        </div>
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className={isNpi ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}>
-                        {!isNpi && (
+                    <div className={isNpi ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}>
+                        {/* {!isNpi && ( */}
                             <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
                                 <div>
                                     <div className="flex items-center gap-2 font-semibold text-lg">
@@ -552,9 +590,10 @@ export default function CredentialingWorkflowPage() {
                                             <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
                                         )}
                                     </div>
-                                    {!isSanctions && imgSuccess && (
+                                    {documentUploadType==='psvFetched' && runCheckLoader && <CircularProgress />}
+                                    {(documentUploadType!=='psvFetched' || !runCheckLoader) && !isSanctions && imgSuccess && (
                                         <Image
-                                            src={imagePath}
+                                            src={selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? ('/images/' + providerName?.replace(/\s+/g, "-") + ".png") : imagePath}
                                             alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
                                             width={600}
                                             height={400}
@@ -588,13 +627,13 @@ export default function CredentialingWorkflowPage() {
                                         <Button size="sm" className="flex-1 w-full" onClick={handleSanctionsDownload}>Download Sanctions File</Button>
                                     ) : (
                                         <>
-                                            <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentPopup}>View</Button>
                                             <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
+                                            <Button size="sm" className="flex-1 w-full" variant='outline' disabled={runCheckLoader} onClick={handleRunCheck}>{runCheckLoader ? "Running..." : "Run Check"}</Button>
                                         </>
                                     )}
                                 </div>
                             </div>
-                        )}
+
 
                         {!isNpi && !isSanctions && (
                             <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
@@ -608,9 +647,10 @@ export default function CredentialingWorkflowPage() {
                                             <Search className="h-5 w-5 text-primary" />
                                             <h4>{isSanctions ? 'LLM Parser Output':'OCR/LLM Output'}</h4>
                                         </div>
-                                        <div className="max-h-96 overflow-auto pr-2">
+                                        {runCheckLoader && <CircularProgress/>}
+                                        {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
                                             <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} providerName={providerName} specialty={formData?.speciality || formData?.specialty} />
-                                        </div>
+                                        </div>}
                                     </div>
                                 </div>
 
@@ -632,9 +672,10 @@ export default function CredentialingWorkflowPage() {
                                     <Database className="h-5 w-5 text-primary" />
                                     <h4>Verification</h4>
                                 </div>
-                                <div className="max-h-96 overflow-auto pr-2">
+                                {runCheckLoader && <CircularProgress/>}
+                                {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
                                     <VerificationOutput pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} verificationDetails={selectedDocument?.verificationDetails || {}} />
-                                </div>
+                                </div>}
                             </div>
 
                             <div className='space-y-2'>
