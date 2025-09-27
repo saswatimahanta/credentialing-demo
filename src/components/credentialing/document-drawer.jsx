@@ -16,8 +16,7 @@ import Image from "next/image"
 
 const DocumentDrawer = ({ documents }) => {
     // const [modDocuments, setModDocuments] = useState(documents)
-    console.log(documents)
-
+    console.log('documents', documents)
     return (
         <Sheet>
         <SheetTrigger asChild>
@@ -30,11 +29,11 @@ const DocumentDrawer = ({ documents }) => {
             </SheetHeader>
             <div className="py-6 overflow-y-scroll h-[44rem] space-y-4">
             {/* Drawer body content goes here */}
-                    {documents.filter(doc => doc!="sanctions").map((doc) => (
+                    {documents.filter(doc => doc.fileType!="sanctions").map((doc) => (
                     <div>
                        <Image
-                           src={`/images/${doc}.jpg`}
-                           alt={`${doc} Scan`}
+                           src={`/images/${doc.fileType}.jpg`}
+                           alt={`${doc.fileType} Scan`}
                            width={600}
                            height={400}
                            className="rounded-md border object-cover cursor-pointer"
@@ -42,6 +41,7 @@ const DocumentDrawer = ({ documents }) => {
                            tabIndex={0}
 
                        />
+                            <p>Last updated: {doc.lastChecked}</p>
                     </div>
                 ))}
             </div>

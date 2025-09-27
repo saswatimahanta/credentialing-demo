@@ -40,7 +40,7 @@ function formatCustomDate(date) {
   const minutes = pad(date.getMinutes());
   const seconds = pad(date.getSeconds());
 
-  return `${month}/${day}/${year}, ${hours}.${minutes}.${seconds}`;
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds}`;
 }
 
 const providersWithCertificates = ['Ahmed Alsadek', 'Lester Summerfield', 'Linda Thompson', 'Rakesh Bhola', 'Richard Bender', 'Roger Tran', 'Sajeet Sawhney', 'Shivanand Pole', 'Vivian Nguyen']
@@ -175,7 +175,15 @@ export default function CredentialingWorkflowPage() {
     const handleRunCheck = () => {
         setRunCheckLoader(true)
         setTimeout(() => {
-            setRunTime(formatCustomDate(new Date()))
+            // setRunTime(formatCustomDate(new Date()))
+            setDocuments(prev =>
+                prev.map(doc =>
+                    doc.fileType === selectedDocument?.fileType
+                    ? { ...doc, lastChecked: formatCustomDate(new Date()) }
+                    : doc
+                )
+            );
+
             setRunCheckLoader(false)
             toast({ title: "Check", description: "Check Ran Successfully" });
         }, 5000)
@@ -271,7 +279,7 @@ export default function CredentialingWorkflowPage() {
             ? files.map((f: any) => [f.fileType || f.type || 'unknown', f])
             : Object.entries(files);
 
-        return entries.map(([rawKey, f]) => {
+        return entries.map(([rawKey, f], index) => {
             const fileType = mapKeyToFileType(f?.fileType || rawKey);
             const verificationObj = f?.verificationDetails && typeof f?.verificationDetails === 'object'
                 ? f?.verificationDetails
@@ -299,6 +307,12 @@ export default function CredentialingWorkflowPage() {
                 pdfMatch: pdfMatchNormalized,
                 comments: f?.comments || [],
                 verificationDetails: Object.keys(verificationObj || {}).length ? verificationObj : (f?.verificationDetails || f?.verification_details || null),
+                lastChecked: formatCustomDate(
+                    new Date(
+                        Date.now() - ((index+1) * 24 * 60 * 60 * 1000) - ((index+1) * 60 * 60 * 1000)
+                    )
+                )
+
             };
         });
     };
@@ -430,7 +444,11 @@ export default function CredentialingWorkflowPage() {
     const handleViewAllDocuments = () => {
 
     }
+    useEffect(()=>{console.log('selectedDocument', selectedDocument)}, [selectedDocument])
 
+    useEffect(() => {
+        if (documents.length > 0) setSelectedDocument(documents[0] as any);
+    }, [documents])
     useEffect(() => {
         async function loadVerificationCenter() {
             if (selectedDocument) {
@@ -470,6 +488,7 @@ export default function CredentialingWorkflowPage() {
             </div>
         )
     }
+
 
     return (
         <div className="space-y-6">
@@ -533,7 +552,7 @@ export default function CredentialingWorkflowPage() {
                                         <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <DocumentDrawer documents={documents.map((doc)=>doc.fileType)}/>
+                                <DocumentDrawer documents={documents.map((doc)=>({fileType: doc?.fileType, lastChecked: doc?.lastChecked}))}/>
 
                             </div>
 
@@ -573,7 +592,7 @@ export default function CredentialingWorkflowPage() {
                     <CardDescription>
                         <div className='flex justify-between'>
                             <p>Details from each stage of the verification pipeline.</p>
-                            <p>Last Check: {runTime }</p>
+                            <p>Last Check: {selectedDocument?.lastChecked }</p>
                         </div>
                     </CardDescription>
                 </CardHeader>
