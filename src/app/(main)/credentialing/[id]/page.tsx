@@ -29,7 +29,7 @@ import DocumentDrawer from '@/components/credentialing/document-drawer'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-function formatCustomDate(date) {
+export function formatCustomDate(date) {
   const pad = (n) => n.toString().padStart(2, "0");
 
   const month = pad(date.getMonth() + 1);
@@ -43,7 +43,7 @@ function formatCustomDate(date) {
   return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds}`;
 }
 
-const providersWithCertificates = ['Ahmed Alsadek', 'Lester Summerfield', 'Linda Thompson', 'Rakesh Bhola', 'Richard Bender', 'Roger Tran', 'Sajeet Sawhney', 'Shivanand Pole', 'Vivian Nguyen']
+export const providersWithCertificates = ['Ahmed Alsadek', 'Lester Summerfield', 'Linda Thompson', 'Rakesh Bhola', 'Richard Bender', 'Roger Tran', 'Sajeet Sawhney', 'Shivanand Pole', 'Vivian Nguyen']
 
 const getDocumentIcon = (status: DocumentStatus['status']) => {
     switch (status) {
@@ -278,6 +278,7 @@ export default function CredentialingWorkflowPage() {
         const entries: Array<[string, any]> = Array.isArray(files)
             ? files.map((f: any) => [f.fileType || f.type || 'unknown', f])
             : Object.entries(files);
+        console.log('entries', entries)
 
         return entries.map(([rawKey, f], index) => {
             const fileType = mapKeyToFileType(f?.fileType || rawKey);
@@ -297,9 +298,9 @@ export default function CredentialingWorkflowPage() {
                 pdfMatchNormalized.match = /verification|verified|match/i.test(f?.verification);
             }
             pdfMatchNormalized.reason = verificationObj?.verification_summary || verificationObj?.comment || verificationObj?.comment_1 || verificationObj?.comment_2 || (typeof f?.verification === 'string' ? f?.verification : undefined);
-
             return {
                 fileType,
+                fileUrl: f?.file ? `data:image/png;base64,${f.file}` : null,
                 filename: f?.filename ?? null,
                 status: (f?.status as any) || 'Pending',
                 progress: typeof f?.progress === 'number' ? f.progress : 0,
@@ -325,6 +326,7 @@ export default function CredentialingWorkflowPage() {
                 const res = await axios.get(`${API_BASE_URL}/api/forms/${documentUploadType === 'userUploaded' ? 'upload-info' : 'upload-info-psv'}`, {
                     params: { 'appId': id, 'formId': '', 'uploadIds': uploadIds.join(',') },
                 });
+                console.log('res', res)
                 const normalized = normalizeFilesToDocuments(res.data?.files);
                 // Reorder depending on upload type (keep key documents first)
                 const docData = normalized.sort((a: any, b: any) => {
@@ -552,7 +554,7 @@ export default function CredentialingWorkflowPage() {
                                         <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <DocumentDrawer documents={documents.map((doc)=>({fileType: doc?.fileType, lastChecked: doc?.lastChecked}))}/>
+                            <DocumentDrawer documents={documents.map((doc) => ({ fileType: doc?.fileType, lastChecked: doc?.lastChecked, fileUrl: doc?.fileUrl }))} providerName={ providerName} />
 
                             </div>
 
@@ -612,7 +614,16 @@ export default function CredentialingWorkflowPage() {
                                     {documentUploadType==='psvFetched' && runCheckLoader && <CircularProgress />}
                                     {(documentUploadType!=='psvFetched' || !runCheckLoader) && !isSanctions && imgSuccess && (
                                         <Image
-                                            src={selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? ('/images/' + providerName?.replace(/\s+/g, "-") + ".png") : imagePath}
+
+                                            src = { selectedDocument.fileUrl ||
+                                                (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
+                                                ? `/images/${providerName}_${selectedDocument.fileType}.png`
+                                                : (selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? `/images/${providerName?.replace(/\s+/g, "-")}.png`
+                                                    : ( imagePath)
+
+                                                ))
+                                            }
+
                                             alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
                                             width={600}
                                             height={400}
@@ -654,8 +665,18 @@ export default function CredentialingWorkflowPage() {
                             </div>
 
 
-                        {!isNpi && !isSanctions && (
-                            <DocumentPopup filePath={imagePath} showDocument={showDocument} setShowDocument={setShowDocument} />
+                        {!isSanctions && (
+                            <DocumentPopup
+                                filePath = {
+                                                selectedDocument.fileUrl || (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
+                                                ? `/images/${providerName}_${selectedDocument.fileType}.png`
+                                                : (selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? `/images/${providerName?.replace(/\s+/g, "-")}.png`
+                                                    : (imagePath)
+
+                                                ))
+                                            }
+                                showDocument={showDocument}
+                                setShowDocument={setShowDocument} />
                         )}
 
                         {!isNpi && (

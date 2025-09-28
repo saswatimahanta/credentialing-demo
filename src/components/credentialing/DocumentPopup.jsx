@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal, Typography, Box } from '@mui/material';
+import { Modal, Box } from '@mui/material';
 
 const style = {
   position: 'absolute',
@@ -14,6 +14,7 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
+
 const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
   const nextCandidate = (current) => {
     if (!current) return current;
@@ -27,12 +28,21 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
       `${base}.png`,
       `${lower(base)}.png`,
     ];
-    const idx = candidates.findIndex((c) => c.toLowerCase() === `${lower(base)}.${lower(ext)}`);
+    const idx = candidates.findIndex(
+      (c) => c.toLowerCase() === `${lower(base)}.${lower(ext)}`
+    );
     const next = candidates[Math.min(idx + 1, candidates.length - 1)];
     return [...parts, next].join('/');
   };
+
   const getFileType = (path) => {
-    const ext = path.split(".").pop()?.toLowerCase();
+    if (!path) return null;
+    // Base64 image
+    if (path.startsWith('data:image/')) {
+      return path.substring(11, path.indexOf(';'));
+    }
+    // Blob or normal URL
+    const ext = path.split('.').pop()?.toLowerCase();
     return ext;
   };
 
@@ -48,12 +58,11 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
   };
 
   const renderContent = () => {
-    const fileType = getFileType(filePath);
-
-    if (!fileType) return <p>Unsupported file</p>;
+    const ext = getFileType(filePath);
+    if (!ext) return <p>Unsupported file</p>;
 
     // 📸 Image Preview
-    if (["png", "jpg", "jpeg", "gif", "webp"].includes(fileType)) {
+    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) {
       return (
         <img
           src={filePath}
@@ -62,7 +71,10 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
           onError={(e) => {
             const img = e.currentTarget;
             const tried = img.dataset.step ? parseInt(img.dataset.step, 10) : 0;
-            if (tried > 2) { img.style.display = 'none'; return; }
+            if (tried > 2) {
+              img.style.display = 'none';
+              return;
+            }
             img.dataset.step = String(tried + 1);
             img.src = nextCandidate(img.src);
           }}
@@ -71,7 +83,7 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
     }
 
     // 📄 PDF Preview
-    if (fileType === "pdf") {
+    if (ext === "pdf") {
       return (
         <iframe
           src={filePath}
@@ -83,16 +95,26 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
 
     return <p>Cannot preview this file type</p>;
   };
+
   return (
     <Modal
       open={showDocument}
-      onClose={() => { setShowDocument(false) }}
+      onClose={() => setShowDocument(false)}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
       <Box sx={{ ...style, position: 'relative' }}>
         {/* Controls */}
-        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 8, zIndex: 2 }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            display: 'flex',
+            gap: 8,
+            zIndex: 2,
+          }}
+        >
           <button
             onClick={handleDownload}
             className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
@@ -109,7 +131,7 @@ const DocumentPopup = ({ filePath, showDocument, setShowDocument }) => {
         {renderContent()}
       </Box>
     </Modal>
-  )
-}
+  );
+};
 
-export default DocumentPopup
+export default DocumentPopup;

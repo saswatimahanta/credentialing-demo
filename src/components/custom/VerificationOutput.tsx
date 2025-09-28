@@ -40,13 +40,31 @@ export const VerificationOutput = ({ pdfData, ocrData, type, verificationDetails
     );
   }
 
+  if (type === "sanctions") {
+    return (
+      <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+        <SanctionMatch data={pdfData} />
+      </div>
+    );
+  }
+
+   if (type === "CV" || type === "malpractice_insurance") {
+    return (
+      <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+        <PdfMatch data={pdfData} />
+        <OutreachMatch />
+      </div>
+    );
+  }
+
   if (type === "cv/resume") {
     return (
       <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
         <PdfMatch data={pdfData} />
+        <OutreachMatch />
         <div className="flex items-start gap-2 text-gray-600">
           <Clock className="h-5 w-5 mt-0.5 shrink-0" />
-          <span>Veirifcation with institution pending</span>
+          <span>Verifcation with institution pending</span>
         </div>
       </div>
     );
@@ -140,6 +158,33 @@ const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolea
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <span>Pdf Format Match</span>
+          <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-primary transition">
+            {expanded ? (<ChevronUp className="h-4 w-4" />) : (<ChevronDown className="h-4 w-4" />)}
+          </button>
+        </div>
+        {expanded && (
+          <div className="mt-2 text-muted-foreground border-l-2 pl-3 border-gray-300">
+            <strong>Reason:</strong> {reason}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SanctionMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolean }) => {
+  const [expanded, setExpanded] = useState(false);
+  const rawMatch = data?.match;
+  const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
+  const reason = data?.reason || "No reason provided.";
+  // const isGreen = forceGreen || match;
+  const isGreen = true
+  return (
+    <div className={`flex items-start gap-2 ${isGreen ? 'text-green-600' : 'text-red-600'}`}>
+      {isGreen ? (<CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />) : (<XCircle className="h-5 w-5 mt-0.5 shrink-0" />)}
+      <div className="flex-1">
+        <div className="flex justify-between items-start">
+          <span>Sanction Found</span>
           <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-primary transition">
             {expanded ? (<ChevronUp className="h-4 w-4" />) : (<ChevronDown className="h-4 w-4" />)}
           </button>

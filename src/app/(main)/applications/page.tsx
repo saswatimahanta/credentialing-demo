@@ -151,7 +151,7 @@ export default function ApplicationsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-6">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base font-normal">Total Applications</CardTitle>
@@ -162,18 +162,34 @@ export default function ApplicationsPage() {
                 </Card>
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base font-normal">Pending Review</CardTitle>
+                        <CardTitle className="text-base font-normal">Sanctioned</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">{applications.filter(a => a.status === 'Pending Review').length}</p>
+                        <p className="text-2xl font-bold">{applications.filter(a => a.psvStatus === 'SANCTIONED').length}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base font-normal">Closed</CardTitle>
+                        <CardTitle className="text-base font-normal">New</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">{applications.filter(a => a.status === 'Closed').length}</p>
+                        <p className="text-2xl font-bold">{applications.filter(a => a.psvStatus === 'NEW').length}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-normal">In Progress</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">{applications.filter(a => a.psvStatus === 'IN_PROGRESS').length}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-normal">Completed</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">{applications.filter(a => a.psvStatus === 'COMPLETED').length}</p>
                     </CardContent>
                 </Card>
                 {/* Add Button */}
