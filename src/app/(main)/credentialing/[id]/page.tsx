@@ -190,6 +190,19 @@ export default function CredentialingWorkflowPage() {
         }, 5000)
     }
 
+    const handleRunCheckAll = () => {
+        setRunCheckLoader(true)
+        setTimeout(() => {
+            // setRunTime(formatCustomDate(new Date()))
+            setDocuments(prev =>
+                prev.map(doc =>({ ...doc, lastChecked: formatCustomDate(new Date()) }))
+            );
+
+            setRunCheckLoader(false)
+            toast({ title: "Check", description: "Check Ran Successfully" });
+        }, 5000)
+    }
+
     const handleSanctionsDownload = async () => {
         try {
             const normName = (providerName || '').trim().replace(/\s+/g, '_');
@@ -325,7 +338,6 @@ export default function CredentialingWorkflowPage() {
                 if (selectedDocument?.fileType === 'sanctions') {
                     const response = await axios.get(`${API_BASE_URL}/api/applications`);
                     const found = response.data.find((app: any) => app.name === providerName);
-                    console.log('found', found)
                     if (found) {
                         setSanction(found?.psvStatus==='SANCTIONED'); // or setMatchedApp(true) if you only care about presence
                     } else {
@@ -566,15 +578,18 @@ export default function CredentialingWorkflowPage() {
                 <CardContent>
                     <div className='space-y-4'>
                             <div className='flex justify-between'>
-                                <Select defaultValue="userUploaded" onValueChange={handleDocumentDropdown}>
-                                    <SelectTrigger className="w-[200px]">
-                                        <SelectValue placeholder="User Uploaded" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="userUploaded">Provider Submitted</SelectItem>
-                                        <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div className='flex space-x-4'>
+                                    <Select defaultValue="userUploaded" onValueChange={handleDocumentDropdown}>
+                                        <SelectTrigger className="w-[200px]">
+                                            <SelectValue placeholder="User Uploaded" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="userUploaded">Provider Submitted</SelectItem>
+                                            <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Button variant='outline' onClick={handleRunCheckAll}>Run Check</Button>
+                                </div>
                             <DocumentDrawer documents={documents.map((doc) => ({ fileType: doc?.fileType, lastChecked: doc?.lastChecked, fileUrl: doc?.fileUrl }))} providerName={ providerName} />
 
                             </div>
