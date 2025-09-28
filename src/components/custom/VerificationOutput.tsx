@@ -2,7 +2,7 @@ import { oc } from "date-fns/locale";
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { useState } from "react";
 
-export const VerificationOutput = ({ pdfData, ocrData, type, verificationDetails, }: { pdfData: any; ocrData: any; type: string; verificationDetails?: any; }) => {
+export const VerificationOutput = ({ sanction, pdfData, ocrData, type, verificationDetails, }: { sanction: boolean; pdfData: any; ocrData: any; type: string; verificationDetails?: any; }) => {
   if (!pdfData) {
     return (
       <div className="text-sm text-muted-foreground p-3 rounded-md bg-muted">
@@ -43,7 +43,7 @@ export const VerificationOutput = ({ pdfData, ocrData, type, verificationDetails
   if (type === "sanctions") {
     return (
       <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-        <SanctionMatch data={pdfData} />
+        <SanctionMatch data={pdfData} sanction={sanction} />
       </div>
     );
   }
@@ -172,7 +172,7 @@ const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolea
   );
 };
 
-const SanctionMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolean }) => {
+const SanctionMatch = ({ data, forceGreen = false, sanction }: { data: any; forceGreen?: boolean, sanction: boolean }) => {
   const [expanded, setExpanded] = useState(false);
   const rawMatch = data?.match;
   const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
@@ -180,11 +180,11 @@ const SanctionMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: b
   // const isGreen = forceGreen || match;
   const isGreen = true
   return (
-    <div className={`flex items-start gap-2 ${isGreen ? 'text-green-600' : 'text-red-600'}`}>
-      {isGreen ? (<CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />) : (<XCircle className="h-5 w-5 mt-0.5 shrink-0" />)}
+    <div className={`flex items-start gap-2 ${sanction ? 'text-green-600' : 'text-red-600'}`}>
+      {sanction ? (<CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />) : (<XCircle className="h-5 w-5 mt-0.5 shrink-0" />)}
       <div className="flex-1">
         <div className="flex justify-between items-start">
-          <span>Sanction Found</span>
+          <span>Sanction {sanction ? 'Found': 'Not Found'}</span>
           <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-primary transition">
             {expanded ? (<ChevronUp className="h-4 w-4" />) : (<ChevronDown className="h-4 w-4" />)}
           </button>

@@ -109,6 +109,7 @@ export default function CredentialingWorkflowPage() {
     return formatCustomDate(date);
     })
     const [runCheckLoader, setRunCheckLoader] = useState(false)
+    const [sanction, setSanction] = useState(false)
 
     // Image helpers for thumbnails/preview
     const imageAliasFor = (fileType?: string) => {
@@ -317,6 +318,26 @@ export default function CredentialingWorkflowPage() {
             };
         });
     };
+
+    useEffect(() => {
+        const loadApplications = async () => {
+            try {
+                if (selectedDocument?.fileType === 'sanctions') {
+                    const response = await axios.get(`${API_BASE_URL}/api/applications`);
+                    const found = response.data.find((app: any) => app.name === providerName);
+                    console.log('found', found)
+                    if (found) {
+                        setSanction(found?.psvStatus==='SANCTIONED'); // or setMatchedApp(true) if you only care about presence
+                    } else {
+                        setSanction(false);
+                    }
+                }
+            } catch(error) {
+                console.error('Failed to fetch applications:', error);
+            }
+        }
+        loadApplications()
+    }, [selectedDocument, providerName])
 
     useEffect(() => {
         const fetchDocUploadNameData = async (uploadIds: any) => {
@@ -714,7 +735,7 @@ export default function CredentialingWorkflowPage() {
                                 </div>
                                 {runCheckLoader && <CircularProgress/>}
                                 {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
-                                    <VerificationOutput pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} verificationDetails={selectedDocument?.verificationDetails || {}} />
+                                    <VerificationOutput sanction={sanction} pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} verificationDetails={selectedDocument?.verificationDetails || {}} />
                                 </div>}
                             </div>
 
@@ -758,3 +779,7 @@ export default function CredentialingWorkflowPage() {
         </div>
     );
 }
+function setMatchedApp(found: any) {
+    throw new Error('Function not implemented.');
+}
+
