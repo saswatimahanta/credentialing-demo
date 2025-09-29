@@ -253,13 +253,12 @@ export default function ApplicationIntake({ onRosterIntakeComplete, onBulkDocume
                     Roster Processing Complete!
                   </p>
                   <p>
-                    Successfully added 3 provider applications from the roster file:
+                    Successfully added 2 provider applications from the roster file:
                   </p>
                   <br />
                   <ul>
                     <li>Dr. Sarah Johnson - Internal Medicine</li>
                     <li>Dr. Michael Chen - Cardiology</li>
-                    <li>Dr. Munther A Hijazin - Psychiatry & Neurology</li>
                   </ul>
                   <br />
                   <p>

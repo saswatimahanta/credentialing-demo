@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,9 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator';
 import { Eye, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 type Confidence = 'High' | 'Medium' | 'Low';
 type RowStatus = 'Pending' | 'Approved' | 'Rejected';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface FieldRow {
     id: number;
@@ -29,7 +32,7 @@ interface FieldRow {
 // Placeholder initial extracted fields (normally returned by backend)
 const initialRows: FieldRow[] = [
     { id: 1, attribute: 'Issuer', value: 'The American Board of Psychiatry and Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
-    { id: 2, attribute: 'Recipient Name', value: 'Munther A Hijazin', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
+    { id: 2, attribute: 'Recipient Name', value: 'Roger Tran', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 3, attribute: 'Certification Type', value: 'Diplomate', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 4, attribute: 'Field of Study', value: 'Neurology', confidence: 'High', evidence: true, comments: '', status: 'Pending' },
     { id: 5, attribute: 'Certification Validity Period', value: 'February, 2011 - December 31, 2021', confidence: 'Medium', evidence: true, comments: '', status: 'Pending' },
@@ -58,6 +61,7 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [evidenceOpen, setEvidenceOpen] = useState(false);
     const [evidenceImage, setEvidenceImage] = useState<string | null>(null);
+    const [data, setData] = useState({})
     const router = useRouter();
     const { toast } = useToast();
 
@@ -94,11 +98,21 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
 
     const openEvidence = (rowId: number) => {
         // Map row 1 to first image; others to second image
-        const img = rowId === 1 ? '/images/2-2.png' : '/images/3-1.png';
+        const img = rowId === 1 ? '/images/Roger-Tran_1.jpg' : '/images/Roger-Tran_2.jpg';
         setEvidenceImage(img);
         setEvidenceOpen(true);
     };
-
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/applications/${params?.id}`);
+                setData(response?.data)
+            } catch (e) {
+                console.error(e)
+            }
+        }
+        load()
+    })
     return (
         <div className='space-y-6'>
             <Button asChild variant='ghost' className='mb-2 px-0'>
@@ -114,11 +128,11 @@ export default function VerifyExtractedDataPage({ params }: { params: { id: stri
                     <div className='flex flex-wrap gap-8 text-sm'>
                         <div>
                             <p className='text-muted-foreground'>Name</p>
-                            <p className='font-medium'>Dr. Munther A Hijazin</p>
+                            <p className='font-medium'>{data?.provider?.providerName || 'N/A'}</p>
                         </div>
                         <div>
                             <p className='text-muted-foreground'>NPI</p>
-                            <p className='font-medium'>1952319253</p>
+                            <p className='font-medium'>{data?.provider?.npi || 'N/A'}</p>
                         </div>
                         <div>
                             <p className='text-muted-foreground'>Last Update</p>

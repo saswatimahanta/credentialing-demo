@@ -213,8 +213,8 @@ export default function ApplicationDetailsPage() {
               <div className="flex flex-wrap gap-4">
                 <Button variant="outline" onClick={() => handleDownload("MEDICAL_TRAINING_CERTIFICATE")} ><FileText className="mr-2" /> Medical Training Certificate</Button>
                 <Button variant="outline" onClick={() => handleDownload("CV")} ><FileText className="mr-2" /> CV/Resume</Button>
-                <Button variant="outline" onClick={() => handleDownload("coi")} ><FileText className="mr-2" /> Certificate of Insurance</Button>
-                <Button variant="outline" onClick={() => handleDownload("dea")} ><FileText className="mr-2" /> DEA/CDS Certificate</Button>
+                <Button variant="outline" onClick={() => handleDownload("COI")} ><FileText className="mr-2" /> Certificate of Insurance</Button>
+                <Button variant="outline" onClick={() => handleDownload("DEA")} ><FileText className="mr-2" /> DEA/CDS Certificate</Button>
               </div>
 
             </CardContent>
@@ -230,12 +230,12 @@ export default function ApplicationDetailsPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="flex justify-between items-center">
-                  <span>DEA Certificate Issue: Missing Schedule II authorization</span>
+                  <span>Document Issue: Name Mismatch on DEA Certificate </span>
                   <Badge variant="secondary">Confidence: 88%</Badge>
                 </AlertTitle>
                 <AlertDescription className="mt-2">
-                  <p className="text-sm"><span className="font-semibold">Value:</span> DEA Certificate ID: 1234567890, Authorized Schedules: III, IV, V</p>
-                  <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The DEA certificate provided (ID: 1234567890) lists authorization for Schedules III, IV, and V, but does not explicitly include Schedule II, which is required for this specialty (Psychiatry & Neurology) based on standard practice.</p>
+                  <p className="text-sm"><span className="font-semibold">Value:</span> Name on CV/Resume: Roger N. Tran, MD, Name on DEA Certificate: Roger Tran, MD</p>
+                  <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The name on the DEA certificate ("Roger Tran, MD") is missing the middle initial "N." which is present on the provider's CV ("Roger N. Tran, MD"). This discrepancy requires clarification to ensure the legal name is consistent across all professional documentation for identity verification.</p>
                   <div className="flex gap-2 mt-2">
                     <Button
                       size="sm"
@@ -333,7 +333,7 @@ export default function ApplicationDetailsPage() {
               <div>
                 <h4 className="font-semibold mb-2">AI Summary</h4>
                 <p className="text-sm text-muted-foreground">
-                  4 documents submitted; 1 verified. No critical issue found: The provider's DEA certificate has a missing required Schedule II authorization for this specialty.
+                  4 documents submitted; 2 issues found: There is an employment gap of 3 months in the CV.
                 </p>
               </div>
               <Separator />

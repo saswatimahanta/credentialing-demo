@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; type: string; providerName?: string; specialty?: string; }) => {
 
-
+    console.log('data', data)
 
     if (!data) return <p className="text-sm text-muted-foreground">No OCR data available</p>;
     const t = (type || '').toLowerCase();
@@ -109,20 +109,20 @@ export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; 
     if (t === "board_certification") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-                <p><strong>abmsuid:</strong> 813890 <Badge variant="outline" className="ml-2">99%</Badge></p>
-                <p><strong>Name:</strong> Munther Ayed Hijazin <Badge variant="outline" className="ml-2">98%</Badge></p>
-                <p><strong>DOB:</strong> 1988 <Badge variant="outline" className="ml-2">95%</Badge></p>
-                <p><strong>Education:</strong> MD (Doctor of Medicine) <Badge variant="outline" className="ml-2">94%</Badge></p>
-                <p><strong>Address:</strong> Simi Valley, CA 93063-6321 (United States) <Badge variant="outline" className="ml-2">90%</Badge></p>
-                <p><strong>Certification Board:</strong> American Board of Psychiatry & Neurology <Badge variant="outline" className="ml-2">93%</Badge></p>
-                <p><strong>Certification Type:</strong> Neurology - General <Badge variant="outline" className="ml-2">92%</Badge></p>
-                <p><strong>Status:</strong> active <Badge variant="outline" className="ml-2">96%</Badge></p>
-                <p><strong>Duration:</strong> MOC <Badge variant="outline" className="ml-2">89%</Badge></p>
-                <p><strong>Occurrence:</strong> Recertification <Badge variant="outline" className="ml-2">88%</Badge></p>
+                <p><strong>abmsuid:</strong> {data?.abmsuid || 'N/A'} <Badge variant="outline" className="ml-2">99%</Badge></p>
+                <p><strong>Name:</strong> {data?.abms_name || 'N/A'} <Badge variant="outline" className="ml-2">98%</Badge></p>
+                <p><strong>DOB:</strong> {data?.abms_dob || 'N/A'} <Badge variant="outline" className="ml-2">95%</Badge></p>
+                <p><strong>Education:</strong> {data?.abms_education || 'N/A'} <Badge variant="outline" className="ml-2">94%</Badge></p>
+                <p><strong>Address:</strong> {data?.abms_address || 'N/A'} <Badge variant="outline" className="ml-2">90%</Badge></p>
+                <p><strong>Certification Board:</strong> {data?.abms_certification_board || 'N/A'} <Badge variant="outline" className="ml-2">93%</Badge></p>
+                <p><strong>Certification Type:</strong> { data?.abms_certification_type}<Badge variant="outline" className="ml-2">92%</Badge></p>
+                <p><strong>Status:</strong> {data?.abms_status || 'N/A'} <Badge variant="outline" className="ml-2">96%</Badge></p>
+                <p><strong>Duration:</strong> {data?.abms_duration || 'N/A'} <Badge variant="outline" className="ml-2">89%</Badge></p>
+                <p><strong>Occurrence:</strong> {data?.abms_occurence || 'N/A'} <Badge variant="outline" className="ml-2">88%</Badge></p>
                 <p><strong>Start Date:</strong> 10/30/2017 <Badge variant="outline" className="ml-2">91%</Badge></p>
                 <p><strong>End Date:</strong> N/A <Badge variant="outline" className="ml-2">--</Badge></p>
                 <p><strong>Reverification Date:</strong> 3/1/2026 <Badge variant="outline" className="ml-2">90%</Badge></p>
-                <p><strong>Participating in MOC:</strong> TRUE <Badge variant="outline" className="ml-2">100%</Badge></p>
+                <p><strong>Participating in MOC:</strong> {data?.abms_participating_in_moc} <Badge variant="outline" className="ml-2">100%</Badge></p>
             </div>
         );
     }

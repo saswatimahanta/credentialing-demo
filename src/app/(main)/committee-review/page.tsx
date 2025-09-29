@@ -431,8 +431,8 @@ const CommitteeReview = () => {
             console.error('Download error', e);
         }
     };
-
     const handleGenerateReport = async (provider: any) => {
+        console.log('provider',provider)
         setSelectedProvider(provider);
         setReportDialogOpen(true);
         setReportLoading(true);
@@ -441,7 +441,7 @@ const CommitteeReview = () => {
 
         try {
             const hardcodedId = 'APP-1073';
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/applications/report/${hardcodedId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/applications/report/${provider?.id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });

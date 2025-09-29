@@ -111,6 +111,15 @@ export default function ApplicationsPage() {
         router.push(`/applications/${appId}`);
     };
 
+    const handleDelete = async (appId: string) => {
+        try {
+            const response = await axios.delete(`${API_BASE_URL}/api/applications/${appId}`);
+            loadApplications();
+        } catch(e) {
+            console.error(e)
+        }
+    }
+
     const unique = (list: Array<string | undefined>) => Array.from(new Set(list.filter(Boolean) as string[]));
     const statusOptions = unique(applications.map(a => a.psvStatus));
     const marketOptions = unique(applications.map(a => a.market));
@@ -336,11 +345,36 @@ export default function ApplicationsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => handleRowClick(app.id)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onSelect={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleRowClick(app.id);
+                                                    }}
+                                                >
+                                                    View Details
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem>Assign Analyst</DropdownMenuItem>
-                                                <DropdownMenuItem>Change Status</DropdownMenuItem>
+                                                <DropdownMenuItem >Change Status</DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <button
+                                                        className="text-destructive w-full text-left px-2 py-1"
+                                                        onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(app.id);
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </DropdownMenuItem>
+
                                                 <DropdownMenuSeparator />
-                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/credentialing/${app.id}`) }}>
+                                                <DropdownMenuItem
+                                                    onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    router.push(`/credentialing/${app.id}`);
+                                                    }}
+                                                >
                                                     Proceed to Credentialing
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem className="text-destructive">Mark for Review</DropdownMenuItem>
