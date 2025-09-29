@@ -91,9 +91,9 @@ export default function ExecutiveSummary() {
 
         const donutChartData = [
           { name: 'In Progress', value: response?.data?.inProgress },
-          { name: 'Committee Review', value: response?.data?.committeeReview },
-          { name: 'Approved', value: response?.data?.approved },
+          { name: 'Committee Review', value: 2 },
           { name: 'Initiated', value: 38 },
+          { name: 'Approved', value: response?.data?.approved },
           { name: 'Denied', value: response?.data?.denied },
         ]
         setDistributionData(donutChartData)
