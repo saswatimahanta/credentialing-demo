@@ -39,7 +39,7 @@ export const summaryTiles = [
 export const navLinks = [
   { href: '/executive-summary', label: 'Executive Summary', icon: PieChart },
   { href: '/applications', label: 'Applications', icon: FileText },
-  { href: '/credentialing', label: 'Credentialing', icon: Package },
+  // { href: '/credentialing', label: 'Credentialing', icon: Package },
   { href: '/verification-centres', label: 'Verification Centres', icon: Users },
   { href: '/communication', label: 'Communication', icon: Mail },
   { href: '/committee-review', label: 'Committee Review', icon: CommitteeReviewIcon },

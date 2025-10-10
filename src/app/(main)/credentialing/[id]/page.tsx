@@ -517,7 +517,7 @@ export default function CredentialingWorkflowPage() {
         return (
             <div className="space-y-6">
                 <Button asChild variant="ghost" className="mb-4 px-0">
-                    <Link href="/credentialing"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Credentialing</Link>
+                    <Link href="/applications"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
                 </Button>
                 <p>No documents found for this application.</p>
             </div>
@@ -529,7 +529,7 @@ export default function CredentialingWorkflowPage() {
         <div className="space-y-6">
             <div>
                 <Button asChild variant="ghost" className="mb-4 px-0">
-                    <Link href="/credentialing"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Credentialing</Link>
+                    <Link href="/applications"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
                 </Button>
                 <div className='flex justify-between'>
                     <h1 className="text-2xl font-bold tracking-tight font-headline">Primary Source Verification for {providerName}</h1>
@@ -612,6 +612,7 @@ export default function CredentialingWorkflowPage() {
                                         </div>
                                         <div className="w-full mt-2">
                                             <Progress value={doc.progress} />
+
                                         </div>
                                         <Badge variant={getStatusDetails(doc.status).badge} className="mt-2">{doc.status}</Badge>
                                     </button>
@@ -733,7 +734,18 @@ export default function CredentialingWorkflowPage() {
                                 {/* <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType}/> */}
                                 <div className='space-y-2'>
                                     <div className='flex justify-between gap-2'>
-                                        <Button variant='outline' onClick={() => { router.push(`/credentialing/${id}/verify`) }} className='flex-1 h-9' >Modify</Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                if (selectedDocument.fileType === "MEDICAL_TRAINING_CERTIFICATE") {
+                                                router.push(`/credentialing/${id}/verify`);
+                                                }
+                                            }}
+                                            className="flex-1 h-9"
+                                        >
+                                            Modify
+                                        </Button>
+
                                         <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
 
                                     </div>
@@ -756,11 +768,11 @@ export default function CredentialingWorkflowPage() {
 
                             <div className='space-y-2'>
                                 <div className='flex justify-between gap-2'>
-                                    <Button variant='outline' className='flex-1 h-9'>Modify</Button>
+                                    {/* <Button variant='outline' className='flex-1 h-9'>Modify</Button> */}
+                                    <Button className='flex-1 h-9'>Approve</Button>
                                     <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
 
                                 </div>
-                                <Button className='w-full h-9'>Approve</Button>
                             </div>
                         </div>
 

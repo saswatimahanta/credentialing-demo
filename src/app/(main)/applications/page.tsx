@@ -152,7 +152,8 @@ export default function ApplicationsPage() {
         return sortDir === 'asc' ? sorted : sorted.reverse();
     };
 
-    const displayedApps = applySort(applyFilters(applications));
+    // const displayedApps = applySort(applyFilters(applications));
+    const displayedApps = applyFilters(applications);
 
     const toggleSort = (key: keyof AppItem) => {
         if (sortBy !== key) { setSortBy(key); setSortDir('asc'); return; }
@@ -162,7 +163,7 @@ export default function ApplicationsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-6">
+            <div className="grid gap-4 md:grid-cols-5">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base font-normal">Total Applications</CardTitle>
@@ -171,14 +172,14 @@ export default function ApplicationsPage() {
                         <p className="text-2xl font-bold">{applications.length}</p>
                     </CardContent>
                 </Card>
-                <Card>
+                {/* <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base font-normal">Sanctioned</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">{applications.filter(a => a.psvStatus === 'SANCTIONED').length}</p>
                     </CardContent>
-                </Card>
+                </Card> */}
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base font-normal">New</CardTitle>
@@ -313,7 +314,7 @@ export default function ApplicationsPage() {
                                 <TableHead onClick={() => toggleSort('npi')} className="cursor-pointer">NPI</TableHead>
                                 <TableHead onClick={() => toggleSort('name')} className="cursor-pointer">Name</TableHead>
                                 <TableHead onClick={() => toggleSort('psvStatus')} className="cursor-pointer">Status</TableHead>
-                                <TableHead onClick={() => toggleSort('progress')} className="cursor-pointer">% Complete</TableHead>
+                                <TableHead onClick={() => toggleSort('progress')} className="cursor-pointer">Complete</TableHead>
                                 <TableHead onClick={() => toggleSort('assignee')} className="cursor-pointer">Assignee</TableHead>
                                 <TableHead onClick={() => toggleSort('source')} className="cursor-pointer">Source</TableHead>
                                 <TableHead onClick={() => toggleSort('market')} className="cursor-pointer">Market</TableHead>
@@ -330,7 +331,7 @@ export default function ApplicationsPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <span>{app.progress}%</span>
+                                            {/* <span>{app.progress}%</span> */}
                                             <Progress value={app.progress} className="w-[100px]" />
                                         </div>
                                     </TableCell>

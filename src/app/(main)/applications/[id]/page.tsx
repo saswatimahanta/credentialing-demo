@@ -227,14 +227,15 @@ export default function ApplicationDetailsPage() {
               <CardTitle>AI-Detected Issues & Recommendations</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+              <Alert variant="destructive" className='flex flex-col justify-center'>
+                {/* <AlertCircle className="h-4 w-4" /> */}
                 <AlertTitle className="flex justify-between items-center">
-                  <span>Document Issue: Name Mismatch on DEA Certificate </span>
-                  <Badge variant="secondary">Confidence: 88%</Badge>
+                  {/* <span>Document Issue: Name Mismatch on DEA Certificate </span> */}
+                  {/* <Badge variant="secondary">Confidence: 88%</Badge> */}
                 </AlertTitle>
-                <AlertDescription className="mt-2">
-                  <p className="text-sm"><span className="font-semibold">Value:</span> Name on CV/Resume: Roger N. Tran, MD, Name on DEA Certificate: Roger Tran, MD</p>
+                <AlertDescription className="">
+                  <p>No issues found</p>
+                  {/* <p className="text-sm"><span className="font-semibold">Value:</span> Name on CV/Resume: Roger N. Tran, MD, Name on DEA Certificate: Roger Tran, MD</p>
                   <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The name on the DEA certificate ("Roger Tran, MD") is missing the middle initial "N." which is present on the provider's CV ("Roger N. Tran, MD"). This discrepancy requires clarification to ensure the legal name is consistent across all professional documentation for identity verification.</p>
                   <div className="flex gap-2 mt-2">
                     <Button
@@ -262,11 +263,11 @@ export default function ApplicationDetailsPage() {
                     >
                       <Edit className="h-3.5 w-3.5" /> Modify
                     </Button>
-                  </div>
+                  </div> */}
                 </AlertDescription>
 
               </Alert>
-              {aiIssues.slice(1).map((issue, index) => (
+              {/* {aiIssues.slice(1).map((issue, index) => (
                 <Alert key={index} variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle className="flex justify-between items-center">
@@ -319,7 +320,7 @@ export default function ApplicationDetailsPage() {
                     <p><strong>Confidence:</strong> {(suggestion.confidenceScore * 100).toFixed(0)}%</p>
                   </AlertDescription>
                 </Alert>
-              )}
+              )} */}
             </CardContent>
           </Card>
         </div>
@@ -333,13 +334,13 @@ export default function ApplicationDetailsPage() {
               <div>
                 <h4 className="font-semibold mb-2">AI Summary</h4>
                 <p className="text-sm text-muted-foreground">
-                  4 documents submitted; 2 issues found: There is an employment gap of 3 months in the CV.
+                  {/* 4 documents submitted; 2 issues found: There is an employment gap of 3 months in the CV. */}
                 </p>
               </div>
               <Separator />
               <div className="space-y-2">
                 <h4 className="font-semibold">Next Action</h4>
-                <p className="text-sm text-muted-foreground">Verify the flagged issues with the provider or primary source.</p>
+                {/* <p className="text-sm text-muted-foreground">Verify the flagged issues with the provider or primary source.</p> */}
               </div>
               <div className="flex flex-col gap-2">
                 <Button asChild className="w-full" size="lg">
