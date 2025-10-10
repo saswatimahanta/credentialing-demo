@@ -227,14 +227,14 @@ export default function ApplicationDetailsPage() {
               <CardTitle>AI-Detected Issues & Recommendations</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert variant="destructive" className='flex flex-col justify-center'>
+              <Alert variant="success" className='flex flex-col justify-center'>
                 {/* <AlertCircle className="h-4 w-4" /> */}
                 <AlertTitle className="flex justify-between items-center">
                   {/* <span>Document Issue: Name Mismatch on DEA Certificate </span> */}
                   {/* <Badge variant="secondary">Confidence: 88%</Badge> */}
                 </AlertTitle>
                 <AlertDescription className="">
-                  <p>No issues found</p>
+                  <p>No submission gaps</p>
                   {/* <p className="text-sm"><span className="font-semibold">Value:</span> Name on CV/Resume: Roger N. Tran, MD, Name on DEA Certificate: Roger Tran, MD</p>
                   <p className="text-sm mt-1 bg-yellow-100/50 p-2 rounded-md text-black"><span className="font-semibold">AI Reasoning:</span> The name on the DEA certificate ("Roger Tran, MD") is missing the middle initial "N." which is present on the provider's CV ("Roger N. Tran, MD"). This discrepancy requires clarification to ensure the legal name is consistent across all professional documentation for identity verification.</p>
                   <div className="flex gap-2 mt-2">

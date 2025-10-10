@@ -20,23 +20,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" | "success" => {
     const s = (status || '').trim().toLowerCase();
     switch (s) {
         case 'completed':
-            return 'default';
+            return 'success';
         case 'pending review':
             return 'secondary';
         case 'needs further review':
             return 'destructive';
         case 'sanctioned':
-            return 'destructive';
+            return 'default';
         case 'in_progress':
         case 'in progress':
-        case 'closed':
-            return 'outline';
+            return 'default';
         default:
             return s.includes('sanction') ? 'destructive' : 'outline';
+    }
+}
+
+const progressVariant = (status: string) => {
+    const s = (status || '').trim().toLowerCase();
+    switch (s) {
+        case 'completed':
+            return 100;
+        case 'sanctioned':
+            return 50;
+        case 'in_progress':
+        case 'in progress':
+            return 50;
+        case 'new': 
+            return 0
+        default:
+            return 0;
     }
 }
 
@@ -327,15 +343,14 @@ export default function ApplicationsPage() {
                                     <TableCell className="font-medium">{app.npi}</TableCell>
                                     <TableCell>{app.name}</TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus}</Badge>
+                                        <Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus === 'SANCTIONED' ? 'IN_PROGRESS' : app.psvStatus}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            {/* <span>{app.progress}%</span> */}
-                                            <Progress value={app.progress} className="w-[100px]" />
+                                            <Progress value={progressVariant(app.psvStatus)}className="w-[100px]"/>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{app.assignee}</TableCell>
+                                    <TableCell>{app.assignee === "Unassigned" ? 'Barry Allen' : app.assignee}</TableCell>
                                     <TableCell>{app.source}</TableCell>
                                     <TableCell>{app.market}</TableCell>
                                     <TableCell>

@@ -517,7 +517,7 @@ export default function CredentialingWorkflowPage() {
         return (
             <div className="space-y-6">
                 <Button asChild variant="ghost" className="mb-4 px-0">
-                    <Link href="/applications"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
+                    <Link href={`/applications/${id}`}><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
                 </Button>
                 <p>No documents found for this application.</p>
             </div>
@@ -529,7 +529,7 @@ export default function CredentialingWorkflowPage() {
         <div className="space-y-6">
             <div>
                 <Button asChild variant="ghost" className="mb-4 px-0">
-                    <Link href="/applications"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
+                    <Link href={`/applications/${id}`}><ArrowLeft className="mr-2 h-4 w-4" /> Back to Applications</Link>
                 </Button>
                 <div className='flex justify-between'>
                     <h1 className="text-2xl font-bold tracking-tight font-headline">Primary Source Verification for {providerName}</h1>
