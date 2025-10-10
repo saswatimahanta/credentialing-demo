@@ -36,6 +36,7 @@ export default function ApplicationIntake({ onRosterIntakeComplete, onBulkDocume
   const [multipleFiles, setMultipleFiles] = useState([])
   const [bulkLoading, setBulkLoading] = useState(false)
   const [bulkSuccess, setBulkSuccess] = useState(false)
+  const [rosterFileProviders, setRosterFileProviders] = useState([])
 
   const openIntakeFormUrl = async () => {
     const id = uuidv4();
@@ -110,63 +111,107 @@ export default function ApplicationIntake({ onRosterIntakeComplete, onBulkDocume
     }, 2000)
   }
   const processRosterFile = async () => {
-    if (!rosterFile) return;
+   if (!rosterFile) return;
 
-    setRosterLoading(true);
-    setRosterSuccess(false);
+  setRosterLoading(true);
+  setRosterSuccess(false);
 
-    try {
-      // Simulate file processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+  try {
+    // Upload roster file to backend
+    const formData = new FormData();
+    formData.append("file", rosterFile);
 
-      const response = await axios.post(`${API_BASE_URL}/api/applications`, {
-        providerId: `${Date.now()}_002`,
-        formId: uuidv4(),
-        name: 'Dr. Sarah Johnson',
-        providerLastName: 'Lautner',
-        npi: uuidv4(),
-        email: 'saswati.mahanta@hilabs.com',
-        phone: '1234567890',
-        specialty: 'Internal Medicine',
-        address: 'Somewhere in the world',
-        source: "Roster Intake",
-        status: "New",
-        market: "CA",
-        assignee: "Barry Allen",
-        progress: 29,
-      });
-      await axios.post(`${API_BASE_URL}/api/applications`, {
-        providerId: `dr_roster_${Date.now()}_001`,
-        formId: uuidv4(),
-        name: 'Dr. Michael Chen',
-        providerLastName: 'Doe',
-        npi: uuidv4(),
-        email: 'saswati.mahanta@hilabs.com',
-        phone: '1234567890',
-        specialty: 'Intal Medicine',
-        address: 'Somewhere in the world',
-        source: "Roster Intake",
-        status: "New",
-        market: "CA",
-        assignee: "Barry Allen",
-        progress: 98,
-      });
+    const res = await axios.post(`${API_BASE_URL}/upload-to-s3/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-      setRosterSuccess(true);
-      setRosterFile(null);
+    console.log("✅ Upload success:", res.data);
+    let uploadedProviders = res?.data?.results || [];
 
-      // Reset file input
-      const fileInput = document.getElementById('roster-file-input') as HTMLInputElement | null;
-      if (fileInput) fileInput.value = '';
+    // -----> Fetch all applications
+    const appsRes = await axios.get(`${API_BASE_URL}/api/applications`);
+    const applications = appsRes?.data || [];
 
-      // Notify parent that roster intake completed so it can refresh / reveal records
-      onRosterIntakeComplete?.();
+    // -----> Merge specialty info by matching NPI
+    const mergedProviders = uploadedProviders.map(provider => {
+      const match = applications.find(app => app.npi === provider.npi);
+      return {
+        ...provider,
+        specialty: match?.specialty || "N/A",
+      };
+    });
 
-    } catch (error) {
-      console.error('Error processing roster file:', error);
-    } finally {
-      setRosterLoading(false);
-    }
+    setRosterFileProviders(mergedProviders);
+    setRosterSuccess(true);
+    setRosterFile(null);
+
+    // Reset file input
+    const fileInput = document.getElementById("roster-file-input") as HTMLInputElement | null;
+    if (fileInput) fileInput.value = "";
+
+    // Notify parent
+    onRosterIntakeComplete?.();
+  } catch (e) {
+    console.error("Error processing roster file:", e);
+  } finally {
+    setRosterLoading(false);
+  }
+
+
+    // try {
+    //   // Simulate file processing delay
+    //   await new Promise(resolve => setTimeout(resolve, 2000));
+
+    //   const response = await axios.post(`${API_BASE_URL}/api/applications`, {
+    //     providerId: `${Date.now()}_002`,
+    //     formId: uuidv4(),
+    //     name: 'Dr. Sarah Johnson',
+    //     providerLastName: 'Lautner',
+    //     npi: uuidv4(),
+    //     email: 'saswati.mahanta@hilabs.com',
+    //     phone: '1234567890',
+    //     specialty: 'Internal Medicine',
+    //     address: 'Somewhere in the world',
+    //     source: "Roster Intake",
+    //     status: "New",
+    //     market: "CA",
+    //     assignee: "Barry Allen",
+    //     progress: 29,
+    //   });
+    //   await axios.post(`${API_BASE_URL}/api/applications`, {
+    //     providerId: `dr_roster_${Date.now()}_001`,
+    //     formId: uuidv4(),
+    //     name: 'Dr. Michael Chen',
+    //     providerLastName: 'Doe',
+    //     npi: uuidv4(),
+    //     email: 'saswati.mahanta@hilabs.com',
+    //     phone: '1234567890',
+    //     specialty: 'Intal Medicine',
+    //     address: 'Somewhere in the world',
+    //     source: "Roster Intake",
+    //     status: "New",
+    //     market: "CA",
+    //     assignee: "Barry Allen",
+    //     progress: 98,
+    //   });
+
+    //   setRosterSuccess(true);
+    //   setRosterFile(null);
+
+    //   // Reset file input
+    //   const fileInput = document.getElementById('roster-file-input') as HTMLInputElement | null;
+    //   if (fileInput) fileInput.value = '';
+
+    //   // Notify parent that roster intake completed so it can refresh / reveal records
+    //   onRosterIntakeComplete?.();
+
+    // } catch (error) {
+    //   console.error('Error processing roster file:', error);
+    // } finally {
+    //   setRosterLoading(false);
+    // }
   };
 
 
@@ -248,7 +293,24 @@ export default function ApplicationIntake({ onRosterIntakeComplete, onBulkDocume
               )}
 
               {rosterSuccess && (
-                <div className='bg-green-100 text-left p-4 rounded-md'>
+                <>
+                  <div className='bg-green-100 text-left p-4 rounded-md'>
+                    <p className='font-bold'>
+                      Roster Processing Complete!
+                    </p>
+                    <p>
+                      Successfully added {rosterFileProviders.length} provider applications from the roster file:
+                    </p>
+                    <ul>
+                      {rosterFileProviders.map((provider) => (
+                        <li>
+                          {provider?.provider_name} - {provider?.specialty}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                {/* <div className='bg-green-100 text-left p-4 rounded-md'>
                   <p className='font-bold'>
                     Roster Processing Complete!
                   </p>
@@ -264,7 +326,8 @@ export default function ApplicationIntake({ onRosterIntakeComplete, onBulkDocume
                   <p>
                     You can now view these applications in the Applications tab.
                   </p>
-                </div>
+                  </div> */}
+                  </>
               )}
             </CardContent>
           </Card>
