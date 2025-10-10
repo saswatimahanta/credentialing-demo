@@ -51,6 +51,7 @@ export default function ApplicationsPage() {
         assignee?: string;
         source?: string;
         market?: string;
+        npi?: string
     }
     const [applications, setApplications] = useState<AppItem[]>([]);
     const [showIntakeModal, setShowIntakeModal] = useState(false);
@@ -64,7 +65,8 @@ export default function ApplicationsPage() {
         source: 'all',
         assignee: '',
         progressMin: '',
-        progressMax: ''
+        progressMax: '',
+        npi: ''
     });
     const [sortBy, setSortBy] = useState<keyof AppItem | null>(null);
     const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(null);
@@ -126,7 +128,7 @@ export default function ApplicationsPage() {
     const sourceOptions = unique(applications.map(a => a.source));
 
     const applyFilters = (rows: AppItem[]) => rows.filter(r => {
-        if (filters.providerId && !(r.providerId || '').toLowerCase().includes(filters.providerId.toLowerCase())) return false;
+        if (filters.npi && !(r.npi || '').toLowerCase().includes(filters.npi.toLowerCase())) return false;
         if (filters.name && !r.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
         if (filters.status !== 'all' && r.psvStatus !== filters.status) return false;
         if (filters.market !== 'all' && r.market !== filters.market) return false;
@@ -230,7 +232,7 @@ export default function ApplicationsPage() {
                         <CardDescription>Manage and review provider applications.</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
-                        {!showFilters && <Button variant="outline" size="sm" className="h-7 gap-1" onClick={() => { setFilters({ providerId: '', name: '', status: 'all', market: 'all', source: 'all', assignee: '', progressMin: '', progressMax: '' }); }}>
+                        {!showFilters && <Button variant="outline" size="sm" className="h-7 gap-1" onClick={() => { setFilters({ providerId: '', name: '', status: 'all', market: 'all', source: 'all', assignee: '', progressMin: '', progressMax: '', npi: '' }); }}>
                             {/* <ListFilter className="h-3.5 w-3.5" /> */}
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Clear Filters</span>
                         </Button>}
@@ -249,8 +251,8 @@ export default function ApplicationsPage() {
                         <div className="mb-4 rounded-md border p-4 bg-muted/20">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
-                                    <Label htmlFor="f-provider">Provider ID</Label>
-                                    <Input id="f-provider" value={filters.providerId} onChange={(e) => setFilters({ ...filters, providerId: e.target.value })} placeholder="e.g., 1001" />
+                                    <Label htmlFor="f-provider">NPI</Label>
+                                    <Input id="f-provider" value={filters.npi} onChange={(e) => setFilters({ ...filters, npi: e.target.value })} placeholder="e.g., 1001" />
                                 </div>
                                 <div>
                                     <Label htmlFor="f-name">Name</Label>
@@ -308,7 +310,7 @@ export default function ApplicationsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead onClick={() => toggleSort('providerId')} className="cursor-pointer">Provider ID</TableHead>
+                                <TableHead onClick={() => toggleSort('npi')} className="cursor-pointer">NPI</TableHead>
                                 <TableHead onClick={() => toggleSort('name')} className="cursor-pointer">Name</TableHead>
                                 <TableHead onClick={() => toggleSort('psvStatus')} className="cursor-pointer">Status</TableHead>
                                 <TableHead onClick={() => toggleSort('progress')} className="cursor-pointer">% Complete</TableHead>
@@ -321,7 +323,7 @@ export default function ApplicationsPage() {
                         <TableBody>
                             {displayedApps.map((app) => (
                                 <TableRow key={app.id} onClick={() => handleRowClick(app.id)} className="cursor-pointer">
-                                    <TableCell className="font-medium">{app.providerId}</TableCell>
+                                    <TableCell className="font-medium">{app.npi}</TableCell>
                                     <TableCell>{app.name}</TableCell>
                                     <TableCell>
                                         <Badge variant={statusVariant(app.psvStatus)}>{app.psvStatus}</Badge>
