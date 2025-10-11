@@ -24,8 +24,8 @@ export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; 
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>Sanction Status:</strong> {data["Sanction Status"] || 'N/A'}</p>
                 <p><strong>Sanction Details:</strong> {data["Sanction Details"] || 'N/A'}</p>
-                <p><strong>Comment 1:</strong> {data["Comment 1"] || 'N/A'}</p>
-                <p><strong>Comment 2:</strong> {data["Comment 2"] || 'N/A'}</p>
+                {Boolean(data["Comment 1"]) && (<p><strong>Comment 1:</strong> {data["Comment 1"]}</p>)}
+                {Boolean(data["Comment 2"]) && (<p><strong>Comment 2:</strong> {data["Comment 2"]}</p>)}
                 <p><strong>NPI:</strong> {data["NPI"] || 'N/A'}</p>
                 <p><strong>Provider Name:</strong> {data["Provider Name"] || 'N/A'}</p>
             </div>
@@ -115,7 +115,7 @@ export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; 
                 <p><strong>Education:</strong> {data?.abms_education || 'N/A'} <Badge variant="outline" className="ml-2">94%</Badge></p>
                 <p><strong>Address:</strong> {data?.abms_address || 'N/A'} <Badge variant="outline" className="ml-2">90%</Badge></p>
                 <p><strong>Certification Board:</strong> {data?.abms_certification_board || 'N/A'} <Badge variant="outline" className="ml-2">93%</Badge></p>
-                <p><strong>Certification Type:</strong> { data?.abms_certification_type}<Badge variant="outline" className="ml-2">92%</Badge></p>
+                <p><strong>Certification Type:</strong> {data?.abms_certification_type}<Badge variant="outline" className="ml-2">92%</Badge></p>
                 <p><strong>Status:</strong> {data?.abms_status || 'N/A'} <Badge variant="outline" className="ml-2">96%</Badge></p>
                 <p><strong>Duration:</strong> {data?.abms_duration || 'N/A'} <Badge variant="outline" className="ml-2">89%</Badge></p>
                 <p><strong>Occurrence:</strong> {data?.abms_occurence || 'N/A'} <Badge variant="outline" className="ml-2">88%</Badge></p>

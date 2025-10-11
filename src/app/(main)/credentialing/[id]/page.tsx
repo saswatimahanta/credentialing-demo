@@ -29,18 +29,18 @@ import DocumentDrawer from '@/components/credentialing/document-drawer'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export function formatCustomDate(date) {
-  const pad = (n) => n.toString().padStart(2, "0");
+export function formatCustomDate(date: Date) {
+    const pad = (n: number) => n.toString().padStart(2, "0");
 
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const year = date.getFullYear();
 
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
 
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds}`;
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds}`;
 }
 
 export const providersWithCertificates = ['Ahmed Alsadek', 'Lester Summerfield', 'Linda Thompson', 'Rakesh Bhola', 'Richard Bender', 'Roger Tran', 'Sajeet Sawhney', 'Shivanand Pole', 'Vivian Nguyen']
@@ -80,6 +80,8 @@ export default function CredentialingWorkflowPage() {
         comments?: any[];
         verificationDetails?: any;
         ocrData?: any;
+        fileUrl?: string | null;
+        lastChecked?: string;
     };
     const [documents, setDocuments] = useState<UIDocument[]>([]);
     const [selectedDocument, setSelectedDocument] = useState<UIDocument | null>(null);
@@ -105,11 +107,12 @@ export default function CredentialingWorkflowPage() {
     const isNpi = (selectedDocument?.fileType || '').toLowerCase() === 'npi';
     const isSanctions = (selectedDocument?.fileType || '').toLowerCase() === 'sanctions';
     const [runTime, setRunTime] = useState(() => {
-    const date = new Date(new Date().getTime() - 2 * 60 * 60 * 1000 * 25);
-    return formatCustomDate(date);
+        const date = new Date(new Date().getTime() - 2 * 60 * 60 * 1000 * 25);
+        return formatCustomDate(date);
     })
     const [runCheckLoader, setRunCheckLoader] = useState(false)
     const [sanction, setSanction] = useState(false)
+    const [sanctionsDownloading, setSanctionsDownloading] = useState(false)
 
     // Image helpers for thumbnails/preview
     const imageAliasFor = (fileType?: string) => {
@@ -180,8 +183,8 @@ export default function CredentialingWorkflowPage() {
             setDocuments(prev =>
                 prev.map(doc =>
                     doc.fileType === selectedDocument?.fileType
-                    ? { ...doc, lastChecked: formatCustomDate(new Date()) }
-                    : doc
+                        ? { ...doc, lastChecked: formatCustomDate(new Date()) }
+                        : doc
                 )
             );
 
@@ -195,7 +198,7 @@ export default function CredentialingWorkflowPage() {
         setTimeout(() => {
             // setRunTime(formatCustomDate(new Date()))
             setDocuments(prev =>
-                prev.map(doc =>({ ...doc, lastChecked: formatCustomDate(new Date()) }))
+                prev.map(doc => ({ ...doc, lastChecked: formatCustomDate(new Date()) }))
             );
 
             setRunCheckLoader(false)
@@ -205,31 +208,56 @@ export default function CredentialingWorkflowPage() {
 
     const handleSanctionsDownload = async () => {
         try {
-            const normName = (providerName || '').trim().replace(/\s+/g, '_');
-            const candidates = [
-                `/sanctions/${id}.xlsx`,
-                `/sanctions/${normName}_Optout.xlsx`,
-                `/sanctions/${normName}.xlsx`,
-            ];
-            for (const path of candidates) {
-                try {
-                    const head = await fetch(path, { method: 'HEAD' });
-                    if (head.ok) {
-                        const a = document.createElement('a');
-                        a.href = path;
-                        a.download = path.split('/').pop() || 'sanctions.xlsx';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        return;
-                    }
-                } catch (e) {
-                    // ignore and try next candidate
-                }
+            if (!selectedDocument) return;
+            setSanctionsDownloading(true);
+            // Prefer verificationDetails.npi, then OCR NPI, then form data if present
+            const npi = (selectedDocument?.verificationDetails?.npi
+                || selectedDocument?.ocrData?.NPI
+                || formData?.npi
+            );
+            if (!npi) {
+                toast({ title: 'Download', description: 'NPI not available for this provider/document.' });
+                return;
             }
-            toast({ title: 'Download', description: 'Sanctions file not found for this provider.' });
-        } catch (e) {
-            toast({ title: 'Download', description: 'Failed to download sanctions file.' });
+
+            const url = `${API_BASE_URL}/api/documents/download/saved?npi=${encodeURIComponent(npi)}`;
+            const res = await fetch(url, { method: 'GET' });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(text || 'Failed to download sanctions file');
+            }
+
+            const blob = await res.blob();
+            // Extract filename from Content-Disposition if exposed
+            const cd = res.headers.get('content-disposition') || res.headers.get('Content-Disposition');
+            let filename = `sanctions_${npi}`;
+            if (cd) {
+                const match = /filename\*=UTF-8''([^;\n\r]+)|filename="?([^";\n\r]+)"?/i.exec(cd);
+                const extracted = match?.[1] || match?.[2];
+                if (extracted) filename = decodeURIComponent(extracted);
+            } else {
+                // fallback by mime type
+                const mime = blob.type || '';
+                if (mime.includes('json')) filename += '.json';
+                else if (mime.includes('xlsx')) filename += '.xlsx';
+                else if (mime.includes('csv')) filename += '.csv';
+                else filename += '.dat';
+            }
+
+            const objectUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(objectUrl);
+            toast({ title: 'Download', description: 'Sanctions file download started.' });
+        } catch (e: any) {
+            console.error(e);
+            toast({ title: 'Download', description: e?.message || 'Failed to download sanctions file.' });
+        } finally {
+            setSanctionsDownloading(false);
         }
     }
 
@@ -324,7 +352,7 @@ export default function CredentialingWorkflowPage() {
                 verificationDetails: Object.keys(verificationObj || {}).length ? verificationObj : (f?.verificationDetails || f?.verification_details || null),
                 lastChecked: formatCustomDate(
                     new Date(
-                        Date.now() - ((index+1) * 24 * 60 * 60 * 1000) - ((index+1) * 60 * 60 * 1000)
+                        Date.now() - ((index + 1) * 24 * 60 * 60 * 1000) - ((index + 1) * 60 * 60 * 1000)
                     )
                 )
 
@@ -339,12 +367,12 @@ export default function CredentialingWorkflowPage() {
                     const response = await axios.get(`${API_BASE_URL}/api/applications`);
                     const found = response.data.find((app: any) => app.name === providerName);
                     if (found) {
-                        setSanction(found?.psvStatus==='SANCTIONED'); // or setMatchedApp(true) if you only care about presence
+                        setSanction(found?.psvStatus === 'SANCTIONED'); // or setMatchedApp(true) if you only care about presence
                     } else {
                         setSanction(false);
                     }
                 }
-            } catch(error) {
+            } catch (error) {
                 console.error('Failed to fetch applications:', error);
             }
         }
@@ -479,7 +507,7 @@ export default function CredentialingWorkflowPage() {
     const handleViewAllDocuments = () => {
 
     }
-    useEffect(()=>{console.log('selectedDocument', selectedDocument)}, [selectedDocument])
+    useEffect(() => { console.log('selectedDocument', selectedDocument) }, [selectedDocument])
 
     useEffect(() => {
         if (documents.length > 0) setSelectedDocument(documents[0] as any);
@@ -577,22 +605,22 @@ export default function CredentialingWorkflowPage() {
                 </CardHeader>
                 <CardContent>
                     <div className='space-y-4'>
-                            <div className='flex justify-between'>
-                                <div className='flex space-x-4'>
-                                    <Select defaultValue="userUploaded" onValueChange={handleDocumentDropdown}>
-                                        <SelectTrigger className="w-[200px]">
-                                            <SelectValue placeholder="User Uploaded" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="userUploaded">Provider Submitted</SelectItem>
-                                            <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <Button variant='outline' onClick={handleRunCheckAll}>Run Check</Button>
-                                </div>
-                            <DocumentDrawer documents={documents.map((doc) => ({ fileType: doc?.fileType, lastChecked: doc?.lastChecked, fileUrl: doc?.fileUrl }))} providerName={ providerName} />
-
+                        <div className='flex justify-between'>
+                            <div className='flex space-x-4'>
+                                <Select defaultValue="userUploaded" onValueChange={handleDocumentDropdown}>
+                                    <SelectTrigger className="w-[200px]">
+                                        <SelectValue placeholder="User Uploaded" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="userUploaded">Provider Submitted</SelectItem>
+                                        <SelectItem value="psvFetched">PSV-Fetched</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button variant='outline' onClick={handleRunCheckAll}>Run Check</Button>
                             </div>
+                            <DocumentDrawer documents={documents.map((doc) => ({ fileType: doc?.fileType, lastChecked: doc?.lastChecked, fileUrl: doc?.fileUrl }))} providerName={providerName} />
+
+                        </div>
 
                         <div className="flex flex-wrap gap-4">
                             {documents.map(doc => {
@@ -631,87 +659,89 @@ export default function CredentialingWorkflowPage() {
                     <CardDescription>
                         <div className='flex justify-between'>
                             <p>Details from each stage of the verification pipeline.</p>
-                            <p>Last Check: {selectedDocument?.lastChecked }</p>
+                            <p>Last Check: {selectedDocument?.lastChecked}</p>
                         </div>
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className={isNpi ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}>
                         {/* {!isNpi && ( */}
-                            <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2 font-semibold text-lg">
-                                        <Upload className="h-5 w-5 text-primary" />
-                                        {isSanctions ? (
-                                            <h4>Sanctions Evidence</h4>
-                                        ) : (
-                                            <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
-                                        )}
-                                    </div>
-                                    {documentUploadType==='psvFetched' && runCheckLoader && <CircularProgress />}
-                                    {(documentUploadType!=='psvFetched' || !runCheckLoader) && !isSanctions && imgSuccess && (
-                                        <Image
-
-                                            src = { selectedDocument.fileUrl ||
-                                                (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
-                                                ? `/images/${providerName}_${selectedDocument.fileType}.png`
-                                                : (selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? `/images/${providerName?.replace(/\s+/g, "-")}.png`
-                                                    : ( imagePath)
-
-                                                ))
-                                            }
-
-                                            alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
-                                            width={600}
-                                            height={400}
-                                            className="rounded-md border aspect-[3/2] object-cover cursor-pointer"
-                                            data-ai-hint="medical license document"
-                                            onClick={handleDocumentPopup}
-                                            tabIndex={0}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    handleDocumentPopup();
-                                                }
-                                            }}
-                                        />
-                                    )}
-
-                                    <p className="text-sm text-slate-600">
-                                        {!isSanctions ? (
-                                            <>
-                                                <span className="font-medium">File Name:</span> {selectedDocument?.filename || '—'}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="font-medium">Provider:</span> {providerName || '—'}
-                                            </>
-                                        )}
-                                    </p>
-                                </div>
-                                <div className='flex gap-2'>
+                        <div className="flex-1 space-y-2 p-4 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 font-semibold text-lg">
+                                    <Upload className="h-5 w-5 text-primary" />
                                     {isSanctions ? (
-                                        <Button size="sm" className="flex-1 w-full" onClick={handleSanctionsDownload}>Download Sanctions File</Button>
+                                        <h4>Sanctions Evidence</h4>
                                     ) : (
-                                        <>
-                                            <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
-                                            <Button size="sm" className="flex-1 w-full" variant='outline' disabled={runCheckLoader} onClick={handleRunCheck}>{runCheckLoader ? "Running..." : "Run Check"}</Button>
-                                        </>
+                                        <h4>{documentUploadType === 'psvFetched' ? 'API Fetched' : 'Original Upload'}</h4>
                                     )}
                                 </div>
-                            </div>
+                                {documentUploadType === 'psvFetched' && runCheckLoader && <CircularProgress />}
+                                {(documentUploadType !== 'psvFetched' || !runCheckLoader) && !isSanctions && imgSuccess && (
+                                    <Image
 
-
-                        {!isSanctions && (
-                            <DocumentPopup
-                                filePath = {
-                                                selectedDocument.fileUrl || (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
+                                        src={selectedDocument.fileUrl ||
+                                            (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
                                                 ? `/images/${providerName}_${selectedDocument.fileType}.png`
                                                 : (selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? `/images/${providerName?.replace(/\s+/g, "-")}.png`
                                                     : (imagePath)
 
                                                 ))
+                                        }
+
+                                        alt={`${selectedDocument?.filename || selectedDocument?.fileType} Scan`}
+                                        width={600}
+                                        height={400}
+                                        className="rounded-md border aspect-[3/2] object-cover cursor-pointer"
+                                        data-ai-hint="medical license document"
+                                        onClick={handleDocumentPopup}
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleDocumentPopup();
                                             }
+                                        }}
+                                    />
+                                )}
+
+                                <p className="text-sm text-slate-600">
+                                    {!isSanctions ? (
+                                        <>
+                                            <span className="font-medium">File Name:</span> {selectedDocument?.filename || '—'}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="font-medium">Provider:</span> {providerName || '—'}
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+                            <div className='flex gap-2'>
+                                {isSanctions ? (
+                                    <Button size="sm" className="flex-1 w-full" onClick={handleSanctionsDownload} disabled={sanctionsDownloading}>
+                                        {sanctionsDownloading ? 'Downloading…' : 'Download Sanctions File'}
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button size="sm" className="flex-1 w-full" variant='outline' onClick={handleDocumentDownload}>Download</Button>
+                                        <Button size="sm" className="flex-1 w-full" variant='outline' disabled={runCheckLoader} onClick={handleRunCheck}>{runCheckLoader ? "Running..." : "Run Check"}</Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+
+                        {!isSanctions && (
+                            <DocumentPopup
+                                filePath={
+                                    selectedDocument.fileUrl || (["Roger Tran", "Ahmed Alsadek"].includes(providerName)
+                                        ? `/images/${providerName}_${selectedDocument.fileType}.png`
+                                        : (selectedDocument?.fileType === 'MEDICAL_TRAINING_CERTIFICATE' && providersWithCertificates.includes(providerName) ? `/images/${providerName?.replace(/\s+/g, "-")}.png`
+                                            : (imagePath)
+
+                                        ))
+                                }
                                 showDocument={showDocument}
                                 setShowDocument={setShowDocument} />
                         )}
@@ -722,9 +752,9 @@ export default function CredentialingWorkflowPage() {
                                     <div>
                                         <div className="flex items-center gap-2 font-semibold text-lg">
                                             <Search className="h-5 w-5 text-primary" />
-                                            <h4>{isSanctions ? 'LLM Parser Output':'OCR/LLM Output'}</h4>
+                                            <h4>{isSanctions ? 'LLM Parser Output' : 'OCR/LLM Output'}</h4>
                                         </div>
-                                        {runCheckLoader && <CircularProgress/>}
+                                        {runCheckLoader && <CircularProgress />}
                                         {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
                                             <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} providerName={providerName} specialty={formData?.speciality || formData?.specialty} />
                                         </div>}
@@ -738,7 +768,7 @@ export default function CredentialingWorkflowPage() {
                                             variant="outline"
                                             onClick={() => {
                                                 if (selectedDocument.fileType === "MEDICAL_TRAINING_CERTIFICATE") {
-                                                router.push(`/credentialing/${id}/verify`);
+                                                    router.push(`/credentialing/${id}/verify`);
                                                 }
                                             }}
                                             className="flex-1 h-9"
@@ -760,7 +790,7 @@ export default function CredentialingWorkflowPage() {
                                     <Database className="h-5 w-5 text-primary" />
                                     <h4>Verification</h4>
                                 </div>
-                                {runCheckLoader && <CircularProgress/>}
+                                {runCheckLoader && <CircularProgress />}
                                 {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
                                     <VerificationOutput sanction={sanction} pdfData={selectedDocument?.pdfMatch || {}} ocrData={selectedDocument?.ocrData || {}} type={selectedDocument.fileType} verificationDetails={selectedDocument?.verificationDetails || {}} />
                                 </div>}
