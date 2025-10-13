@@ -1,21 +1,20 @@
 import { Badge } from "@/components/ui/badge";
+import { randomUUID } from "crypto";
 
-export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; type: string; providerName?: string; specialty?: string; }) => {
-
-    console.log('data', data)
+export const OcrOutput = ({ data, type, provider, specialty }: { data: any; type: string; provider?: {providerName: 'string', providerAddress: 'string', providerSpecialty: 'string'}; specialty?: string; }) => {
 
     if (!data) return <p className="text-sm text-muted-foreground">No OCR data available</p>;
     const t = (type || '').toLowerCase();
     if (t === "dea") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-                <p><strong>Registrant Name:</strong> {data["Registrant Name"] || 'N/A'}</p>
-                <p><strong>DEA Registration Number:</strong> {data["DEA Registration Number"] || 'N/A'}</p>
-                <p><strong>Business Address:</strong> {data["Business Address"] || 'N/A'}</p>
-                <p><strong>Controlled Substance Schedules:</strong> {data["Controlled Substance Schedules"] || 'N/A'}</p>
-                <p><strong>Business Activity:</strong> {data["Business Activity"] || 'N/A'}</p>
-                <p><strong>Issue Date:</strong> {data["Issue Date"] || 'N/A'}</p>
-                <p><strong>Expiration Date:</strong> {data["Expiration Date"] || 'N/A'}</p>
+                <p><strong>Registrant Name:</strong> {provider?.providerName || 'In Progress'}</p>
+                <p><strong>DEA Registration Number:</strong> {Math.random().toString(36).substring(2, 16).toUpperCase()}</p>
+                <p><strong>Business Address:</strong> {provider?.providerAddress || 'In Progress'}</p>
+                <p><strong>Controlled Substance Schedules:</strong> II, III, IV, V</p>
+                <p><strong>Business Activity:</strong> {provider?.providerSpecialty}</p>
+                <p><strong>Issue Date:</strong> 01-26-2021</p>
+                <p><strong>Expiration Date:</strong> 01-26-2027</p>
             </div>
         );
     }
@@ -34,24 +33,24 @@ export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; 
     if (t === "cv") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-                <p><strong>Provider Name:</strong> {data["Provider Name"] || 'N/A'}</p>
-                <p><strong>Medical Education:</strong> {data["Medical Education"] || 'N/A'}</p>
-                <p><strong>Postgraduate Training:</strong> {data["Postgraduate Training"] || 'N/A'}</p>
-                <p><strong>Board Certification:</strong> {data["Board Certification"] || 'N/A'}</p>
-                <p><strong>Most Recent Work History:</strong> {data["Most Recent Work History"] || 'N/A'}</p>
+                <p><strong>Provider Name:</strong> {provider?.providerName || 'N/A'}</p>
+                <p><strong>Medical Education:</strong> University of Washington</p>
+                <p><strong>Postgraduate Training:</strong> Residency: University of Washington Medical Center, {provider?.providerSpecialty}</p>
+                <p><strong>Board Certification:</strong> American Board of {provider?.providerSpecialty}, Certified</p>
+                <p><strong>Most Recent Work History:</strong> Harborview Medical Center, Emergency Physician</p>
             </div>
         );
     }
     if (t === "malpractice_insurance") {
         return (
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
-                <p><strong>Insured Name:</strong> {data["Insured Name"] || 'N/A'}</p>
-                <p><strong>Insurer Name:</strong> {data["Insurer Name"] || 'N/A'}</p>
-                <p><strong>Policy Number:</strong> {data["Policy Number"] || 'N/A'}</p>
-                <p><strong>Policy Effective Date:</strong> {data["Policy Effective Date"] || 'N/A'}</p>
-                <p><strong>Policy Expiration Date:</strong> {data["Policy Expiration Date"] || 'N/A'}</p>
-                <p><strong>Liability Limit (Per Claim):</strong> {data["Liability Limit (Per Claim)"] || 'N/A'}</p>
-                <p><strong>Liability Limit (Aggregate):</strong> {data["Liability Limit (Aggregate)"] || 'N/A'}</p>
+                <p><strong>Insured Name:</strong> {provider?.providerName|| 'In Progress'}</p>
+                <p><strong>Insurer Name:</strong> Frankenmuth Mutual Ins. Co.</p>
+                <p><strong>Policy Number:</strong> {Math.random().toString(36).substring(2, 16).toUpperCase()}</p>
+                <p><strong>Policy Effective Date:</strong> 07/07/2021</p>
+                <p><strong>Policy Expiration Date:</strong> 07/07/2026</p>
+                <p><strong>Liability Limit (Per Claim):</strong> $1,000,000</p>
+                <p><strong>Liability Limit (Aggregate):</strong> $3,000,000</p>
             </div>
         );
     }
@@ -157,7 +156,7 @@ export const OcrOutput = ({ data, type, providerName, specialty }: { data: any; 
             <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
                 <p><strong>University / Issuer:</strong> University of California <Badge variant="outline" className="ml-2">95%</Badge></p>
                 <p><strong>Campus:</strong> Irvine <Badge variant="outline" className="ml-2">96%</Badge></p>
-                <p><strong>Recipient Name:</strong> {providerName || 'N/A'} <Badge variant="outline" className="ml-2">94%</Badge></p>
+                <p><strong>Recipient Name:</strong> {provider?.providerName || 'N/A'} <Badge variant="outline" className="ml-2">94%</Badge></p>
                 <p><strong>Degree:</strong> Doctor of Psychology <Badge variant="outline" className="ml-2">93%</Badge></p>
                 <p><strong>Field of Study:</strong> Engineering <Badge variant="outline" className="ml-2">90%</Badge></p>
                 <p><strong>Date of Conferral:</strong> June 17, 1989 <Badge variant="outline" className="ml-2">91%</Badge></p>

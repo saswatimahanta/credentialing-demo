@@ -90,6 +90,11 @@ export default function CredentialingWorkflowPage() {
     const [documentUploadType, setDocumentUploadType] = useState('userUploaded')
     const [showDocument, setShowDocument] = useState(false)
     const [providerName, setProviderName] = useState('')
+    const [providerData, setProviderData] = useState({
+        providerAddress: '',
+        providerSpecialty: '',
+        formId: ''
+    })
     const imgSuccess = (() => {
         const ft = (selectedDocument?.fileType || '').toLowerCase();
         const set = new Set([
@@ -297,7 +302,7 @@ export default function CredentialingWorkflowPage() {
             'board_certification': 'Board Certification',
             'license_board': 'License Board',
             'medical_training_certificate': 'Medical Training Certificate',
-            'cv': 'CV',
+            'cv': 'CV/Resume',
             'npi': 'NPI',
             'dea': 'DEA',
             'sanctions': 'Sanctions',
@@ -504,14 +509,37 @@ export default function CredentialingWorkflowPage() {
         }
     };
 
-    const handleViewAllDocuments = () => {
-
-    }
-    useEffect(() => { console.log('selectedDocument', selectedDocument) }, [selectedDocument])
+    const handleStatusChange = async (status: string) => {
+        try {
+            const res = await axios.post(
+            `${API_BASE_URL}/api/forms/upload-status-update`,
+            null, // body is empty
+            {
+                params: {
+                formId: providerData?.formId,
+                statusUpdate: status,
+                fileType: selectedDocument?.fileType,
+                },
+            }
+            );
+            console.log('documents', documents)
+            setDocuments(prev =>
+                prev.map(doc =>
+                    doc?.fileType === selectedDocument?.fileType
+                    ? { ...doc, progress: status === 'Accepted' ? 100 : 0 } // or whatever new value
+                    : doc
+                )
+            );
+            console.log('res', res.data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     useEffect(() => {
         if (documents.length > 0) setSelectedDocument(documents[0] as any);
     }, [documents])
+    
     useEffect(() => {
         async function loadVerificationCenter() {
             if (selectedDocument) {
@@ -521,13 +549,19 @@ export default function CredentialingWorkflowPage() {
         }
         loadVerificationCenter();
     }, [selectedDocument]);
-
+    
     useEffect(() => {
         async function loadData() {
             try {
                 const response = await axios.get(`${API_BASE_URL}/api/applications`);
                 const index = response.data.findIndex((app: any) => app.id === id)
                 setProviderName(response.data[index].name)
+                setProviderData(prev => ({
+                    ...prev,
+                    providerAddress: response.data[index].address,
+                    providerSpecialty: response.data[index].specialty,
+                    formId: response.data[index].formId
+                }))
 
             } catch (error) {
                 console.error('Failed to fetch applications:', error);
@@ -642,7 +676,7 @@ export default function CredentialingWorkflowPage() {
                                             <Progress value={doc.progress} />
 
                                         </div>
-                                        <Badge variant={getStatusDetails(doc.status).badge} className="mt-2">{doc.status}</Badge>
+                                        <Badge variant={getStatusDetails(doc.status).badge} className="mt-2">{doc.progress === 0 ? 'In Progress' : 'Approved'}</Badge>
                                     </button>
                                 )
                             })}
@@ -756,7 +790,7 @@ export default function CredentialingWorkflowPage() {
                                         </div>
                                         {runCheckLoader && <CircularProgress />}
                                         {!runCheckLoader && <div className="max-h-96 overflow-auto pr-2">
-                                            <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} providerName={providerName} specialty={formData?.speciality || formData?.specialty} />
+                                            <OcrOutput data={selectedDocument.ocrData} type={selectedDocument.fileType} provider={{providerName, ...providerData}} specialty={formData?.speciality || formData?.specialty} />
                                         </div>}
                                     </div>
                                 </div>
@@ -776,10 +810,10 @@ export default function CredentialingWorkflowPage() {
                                             Modify
                                         </Button>
 
-                                        <Button variant='destructive' className='flex-1 h-9'>Reject</Button>
+                                        <Button variant='destructive' className='flex-1 h-9' onClick={()=>{handleStatusChange('Rejected')}}>Reject</Button>
 
                                     </div>
-                                    <Button className='w-full h-9'>Approve</Button>
+                                    <Button className='w-full h-9' onClick={()=>{handleStatusChange('Accepted')}}>Approve</Button>
                                 </div>
                             </div>
                         )}

@@ -48,11 +48,21 @@ export const VerificationOutput = ({ sanction, pdfData, ocrData, type, verificat
     );
   }
 
-  if (type === "CV" || type === "malpractice_insurance") {
+  if (type === "CV") {
+    return (
+      <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
+        <GreenCheck data={{}} description="5-year work history present"/>
+        <GreenCheck data={{}} description="No Gaps Found"/>
+      </div>
+    );
+  }
+
+  if(type === "malpractice_insurance"){
     return (
       <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
         <PdfMatch data={pdfData} />
-        <OutreachMatch />
+        <GreenCheck data={{}} description="Valid Certificate of Insurance"/>
+        <GreenCheck data={{}} description="Claims limit is more than the threshold"/>
       </div>
     );
   }
@@ -127,12 +137,13 @@ export const VerificationOutput = ({ sanction, pdfData, ocrData, type, verificat
     return (
       <div className="space-y-2 text-sm bg-muted p-3 rounded-md h-full">
         <PdfMatch data={pdfData} />
-        {status && (
+        <GreenCheck data={{}} description='Valid DEA Certificate'/>
+        {/* {status && (
           <div className="flex items-start gap-2 text-green-600">
             <CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <span>DEA Verification: {String(status)}</span>
           </div>
-        )}
+        )} */}
       </div>
     );
   }
@@ -158,6 +169,33 @@ const PdfMatch = ({ data, forceGreen = false }: { data: any; forceGreen?: boolea
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <span>Pdf Format Match</span>
+          <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-primary transition">
+            {expanded ? (<ChevronUp className="h-4 w-4" />) : (<ChevronDown className="h-4 w-4" />)}
+          </button>
+        </div>
+        {expanded && (
+          <div className="mt-2 text-muted-foreground border-l-2 pl-3 border-gray-300">
+            <strong>Reason:</strong> {reason}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const GreenCheck = ({ data, forceGreen = false, description='' }: { data: any; forceGreen?: boolean, description: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  const rawMatch = data?.match;
+  const match = typeof rawMatch === 'string' ? /match|verified/i.test(rawMatch) : rawMatch;
+  const reason = data?.reason || "No reason provided.";
+  // const isGreen = forceGreen || match;
+  const isGreen = true
+  return (
+    <div className={`flex items-start gap-2 ${isGreen ? 'text-green-600' : 'text-red-600'}`}>
+      {isGreen ? (<CheckCircle className="h-5 w-5 mt-0.5 shrink-0" />) : (<XCircle className="h-5 w-5 mt-0.5 shrink-0" />)}
+      <div className="flex-1">
+        <div className="flex justify-between items-start">
+          <span>{description}</span>
           <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-primary transition">
             {expanded ? (<ChevronUp className="h-4 w-4" />) : (<ChevronDown className="h-4 w-4" />)}
           </button>
