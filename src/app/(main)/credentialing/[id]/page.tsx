@@ -95,6 +95,7 @@ export default function CredentialingWorkflowPage() {
         providerSpecialty: '',
         formId: ''
     })
+    const [documentIndex, setDocumentIndex] = useState(0);
     const imgSuccess = (() => {
         const ft = (selectedDocument?.fileType || '').toLowerCase();
         const set = new Set([
@@ -530,6 +531,8 @@ export default function CredentialingWorkflowPage() {
                     : doc
                 )
             );
+            const index = documents.findIndex(doc => doc?.fileType === selectedDocument?.fileType);
+            setDocumentIndex(index);
             console.log('res', res.data);
         } catch (e) {
             console.error(e);
@@ -537,7 +540,7 @@ export default function CredentialingWorkflowPage() {
     };
 
     useEffect(() => {
-        if (documents.length > 0) setSelectedDocument(documents[0] as any);
+        if (documents.length > 0) setSelectedDocument(documents[documentIndex >= 0 ? documentIndex : 0] as any);
     }, [documents])
     
     useEffect(() => {
